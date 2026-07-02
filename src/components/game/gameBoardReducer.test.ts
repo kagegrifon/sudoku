@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   createInitialState,
   gameBoardReducer,
@@ -6,6 +6,42 @@ import {
   type GameBoardState,
 } from './gameBoardReducer';
 import { EMPTY_CELL } from '../../core';
+import * as core from '../../core';
+import type { Grid } from '../../core';
+
+// Детерминированная головоломка: несколько пустых клеток, остальное — givens.
+// Мокаем generatePuzzle (как в GameScreen.test.tsx), чтобы избежать тяжёлой
+// реальной генерации (особенно 'hard') и сделать тесты быстрыми и стабильными.
+const solved: Grid = [
+  [5, 3, 4, 6, 7, 8, 9, 1, 2],
+  [6, 7, 2, 1, 9, 5, 3, 4, 8],
+  [1, 9, 8, 3, 4, 2, 5, 6, 7],
+  [8, 5, 9, 7, 6, 1, 4, 2, 3],
+  [4, 2, 6, 8, 5, 3, 7, 9, 1],
+  [7, 1, 3, 9, 2, 4, 8, 5, 6],
+  [9, 6, 1, 5, 3, 7, 2, 8, 4],
+  [2, 8, 7, 4, 1, 9, 6, 3, 5],
+  [3, 4, 5, 2, 8, 6, 1, 7, 9],
+];
+
+function puzzleWithSomeHoles(): Grid {
+  const puzzle = solved.map((row) => [...row]);
+  // Оставляем большинство givens, но несколько клеток делаем пустыми —
+  // этого достаточно для findEditable/findGivenCell.
+  puzzle[0][0] = 0;
+  puzzle[2][3] = 0;
+  puzzle[5][7] = 0;
+  puzzle[8][8] = 0;
+  return puzzle;
+}
+
+beforeEach(() => {
+  vi.restoreAllMocks();
+  vi.spyOn(core, 'generatePuzzle').mockReturnValue({
+    puzzle: puzzleWithSomeHoles(),
+    solution: solved,
+  });
+});
 
 // Ищет пустую (редактируемую) клетку в исходной головоломке.
 function findEditable(state: GameBoardState): { row: number; col: number } {
