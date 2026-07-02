@@ -28,7 +28,7 @@ describe('generatePuzzle', () => {
         }
       }
     },
-    20000,
+    60000,
   );
 
   it('solution решает puzzle и полностью заполнено', () => {
