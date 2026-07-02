@@ -36,7 +36,7 @@ function fillFrom(grid: Grid): boolean {
     if (isPlacementValid({ grid, row, col, value })) {
       grid[row][col] = value;
       if (fillFrom(grid)) return true;
-      grid[row][col] = 0;
+      grid[row][col] = EMPTY_CELL;
     }
   }
   return false;
@@ -60,7 +60,7 @@ export function countSolutions(grid: Grid, limit = 2): number {
       if (isPlacementValid({ grid: working, row, col, value })) {
         working[row][col] = value;
         search();
-        working[row][col] = 0;
+        working[row][col] = EMPTY_CELL;
       }
     }
   };

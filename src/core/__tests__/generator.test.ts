@@ -47,4 +47,10 @@ describe('generatePuzzle', () => {
     const clues = puzzle.flat().filter((v) => v !== 0).length;
     expect(clues).toBeGreaterThanOrEqual(DIFFICULTY_CLUES.hard.min);
   });
+
+  it('вырезание действительно удалило клетки (puzzle не равен полному полю)', () => {
+    const { puzzle } = generatePuzzle('easy');
+    const clues = puzzle.flat().filter((v) => v !== 0).length;
+    expect(clues).toBeLessThan(81);
+  });
 });
