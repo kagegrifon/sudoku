@@ -236,6 +236,17 @@ Expected: FAIL — модуль `../solver` не найден.
 
 - [ ] **Step 3: Реализовать `src/core/solver.ts`**
 
+> **Отклонение от плана (принято 2026-07-02).** Эталонный код ниже, взятый дословно, зависает
+> (≈30M+ рекурсий, практически бесконечно) на собственном тесте «возвращает null для нерешаемого
+> поля»: `solve`/`countSolutions` ищут работу через `findEmptyCell`, поэтому конфликт среди
+> *предзаполненных* клеток (givens) никогда не перепроверяется — при уже нарушенном инварианте
+> backtracking экспоненциально перебирает пустые клетки в поисках несуществующего решения.
+> Исправлено минимальным guard-хелпером `isGridConsistent(grid)`, вызываемым в начале `solve` и
+> `countSolutions`: он проверяет каждую непустую клетку через `isPlacementValid` (временно очищая
+> её) и отбраковывает несогласованные grid до входа в поиск (`solve → null`, `countSolutions → 0`).
+> Guard behavior-preserving на всех фикстурах теста (uniquePuzzle, emptyGrid, bad). Итоговый код —
+> в `src/core/solver.ts` (commit bf493a1). Блок ниже — исходный эталон *без* guard, оставлен для истории.
+
 ```ts
 import { type Grid, GRID_SIZE } from './types';
 import { cloneGrid, findEmptyCell, isPlacementValid } from './grid';
