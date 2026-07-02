@@ -5,7 +5,7 @@ import {
   isGiven,
   type GameBoardState,
 } from './gameBoardReducer';
-import { EMPTY_CELL, type Grid } from '../../core';
+import { EMPTY_CELL } from '../../core';
 
 // Ищет пустую (редактируемую) клетку в исходной головоломке.
 function findEditable(state: GameBoardState): { row: number; col: number } {
