@@ -1,0 +1,50 @@
+.pad {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  width: 100%;
+  max-width: min(92vw, 540px);
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.key,
+.erase {
+  min-height: 56px;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(18px, 5vmin, 26px);
+  font-weight: 600;
+  border: 1px solid var(--pad-border, #cbd5e1);
+  border-radius: 10px;
+  background: var(--pad-bg, #f8fafc);
+  color: var(--pad-text, #1b2430);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.key:active,
+.erase:active {
+  background: var(--pad-active-bg, #e2e8f0);
+}
+
+.key:disabled,
+.erase:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.erase {
+  grid-column: span 2;
+}
+
+/* В landscape панель — вертикальная колонка рядом с полем. */
+@media (orientation: landscape) {
+  .pad {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 260px;
+  }
+}
