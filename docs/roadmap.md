@@ -11,7 +11,7 @@
 
 | Фича | Статус | Приоритет | Зависимости | Ветка / PR | Спека / доки | План создан | Завершено | Заметки |
 |---|---|---|---|---|---|---|---|---|
-| База проекта (Vite + React + TS, ESLint/Prettier, базовый PWA-конфиг) | 📋 запланировано | MVP | — | — | [spec §9](../sudoku-pwa-spec.md), [design](superpowers/specs/2026-07-02-sudoku-pwa-design.md) | 2026-07-02 | — | Этап 1. [ADR-0001](adr/0001-css-approach.md), [ADR-0003](adr/0003-state-architecture.md) |
+| База проекта (Vite + React + TS, ESLint/Prettier, базовый PWA-конфиг) | ✅ готово | MVP | — | feat/phase-1-project-base | [spec §9](../sudoku-pwa-spec.md), [design](superpowers/specs/2026-07-02-sudoku-pwa-design.md) | 2026-07-02 | 2026-07-02 | Этап 1. [ADR-0001](adr/0001-css-approach.md), [ADR-0003](adr/0003-state-architecture.md) |
 | Core-логика (generator / solver / validator) + Vitest-тесты | 📋 запланировано | MVP | База проекта | — | [spec §5](../sudoku-pwa-spec.md#5-алгоритм-судоку) | 2026-07-02 | — | Этап 2. Критичная логика — пороги сложности откалибровать тестами |
 | Игровое поле (рендер сетки, ввод цифр, подсветка, детект победы) | 📋 запланировано | MVP | Core-логика | — | [spec §3.1](../sudoku-pwa-spec.md), [spec §8](../sudoku-pwa-spec.md) | 2026-07-02 | — | Этап 3. Без сохранения и таймера |
 | Состояние и сохранение (GameContext, reducer, localStorage-персистентность, восстановление) | 📋 запланировано | MVP | Игровое поле | — | [spec §6](../sudoku-pwa-spec.md), [design §2–3](superpowers/specs/2026-07-02-sudoku-pwa-design.md) | 2026-07-02 | — | Этап 4. [ADR-0002](adr/0002-storage-strategy.md), [ADR-0003](adr/0003-state-architecture.md) |

@@ -23,7 +23,7 @@
 
 | Фаза | Название | План | Статус детализации | Зависит от |
 |---|---|---|---|---|
-| 1 | База проекта (Vite + React + TS, ESLint/Prettier, базовый PWA) | [phase-1-project-base.md](2026-07-02-phase-1-project-base.md) | ✅ детализирован | — |
+| 1 | База проекта (Vite + React + TS, ESLint/Prettier, базовый PWA) | [phase-1-project-base.md](2026-07-02-phase-1-project-base.md) | ✅ реализован (2026-07-02, feat/phase-1-project-base) | — |
 | 2 | Core-логика (generator / solver / validator) + тесты | [phase-2-core-logic.md](2026-07-02-phase-2-core-logic.md) | ✅ детализирован | 1 |
 | 3 | Игровое поле (рендер, ввод, подсветка, детект победы) | — | 📋 детализировать перед стартом | 2 |
 | 4 | Состояние и сохранение (Context, reducer, localStorage, restore) | — | 📋 детализировать перед стартом | 3 |
