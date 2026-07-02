@@ -1,0 +1,67 @@
+.board {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  grid-template-rows: repeat(9, 1fr);
+  aspect-ratio: 1;
+  width: 100%;
+  max-width: min(92vw, 70vh, 540px);
+  margin: 0 auto;
+  border: 3px solid var(--board-border, #344055);
+  background: var(--board-border, #344055);
+  gap: 1px;
+  box-sizing: border-box;
+  touch-action: manipulation;
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: none;
+  font: inherit;
+  font-size: clamp(16px, 4.2vmin, 30px);
+  line-height: 1;
+  background: var(--cell-bg, #fff);
+  color: var(--cell-text, #1b2430);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Толстые границы блоков 3×3: правый край столбцов 3 и 6, нижний край строк 3 и 6.
+   Используем nth-child по позиции в 81-клеточной сетке (row-major). */
+.cell:nth-child(3n):not(:nth-child(9n)) {
+  border-right: 2px solid var(--board-border, #344055);
+}
+.cell:nth-child(n + 19):nth-child(-n + 27),
+.cell:nth-child(n + 46):nth-child(-n + 54) {
+  border-bottom: 2px solid var(--board-border, #344055);
+}
+
+.given {
+  font-weight: 700;
+  color: var(--cell-given, #10151d);
+}
+.editable {
+  font-weight: 500;
+  color: var(--cell-editable, #2563eb);
+}
+
+/* Подсветка: базовый peer → sameValue → selected по возрастанию заметности.
+   Конфликт перекрывает цвет текста и фон. */
+.peer {
+  background: var(--peer-bg, #e8eef7);
+}
+.sameValue {
+  background: var(--samevalue-bg, #cfe0f7);
+}
+.selected {
+  background: var(--selected-bg, #a9c7f5);
+}
+.conflict {
+  color: var(--conflict-text, #d93636);
+  background: var(--conflict-bg, #fbdcdc);
+}
