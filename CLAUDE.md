@@ -1,5 +1,11 @@
 # Sudoku PWA — Claude instructions
 
+## Key documents (source of truth)
+
+- [sudoku-pwa-spec.md](sudoku-pwa-spec.md) — спецификация продукта (функциональность, алгоритм, модель данных).
+- [docs/roadmap.md](docs/roadmap.md) — трекинг фич (статус, приоритет, зависимости, доки, даты).
+- [docs/adr/](docs/adr/) — журнал архитектурных решений (ADR).
+
 ## Quick start
 
 ```
@@ -65,7 +71,7 @@ When in doubt: would a teammate understand this at a glance without untangling i
 
 ## Testing
 
-- Unit tests — Vitest, next to the file (`*.test.ts`). Cover simulation layer systems.
+- Unit tests — Vitest, next to the file (`*.test.ts`). Cover the core logic (`src/core/` — generator/solver/validator); it is the critical part where a bug breaks the product (an unsolvable puzzle). See spec §5.3.
 - E2E tests — Playwright (`tests/` or `e2e/`).
   - Each test must be self-contained with an isolated context (own browser context / `localStorage`); never rely on shared state or ordering between tests.
   - **Always select UI elements by `data-testid` attribute.** Never rely on text content, tag names, or class names for selection. This ensures tests remain stable when text or styles change. Example:
@@ -100,8 +106,8 @@ When in doubt: would a teammate understand this at a glance without untangling i
 
 ### Commits
 
-- Each phase — a separate commit after completion. Do not commit unfinished work.
-- Commit message format: `<type>: <description> (Phase N)`
+- Do not commit unfinished work; each logically complete unit of work — a separate commit.
+- Commit message format: `<type>: <description>`
   - `feat:` — new functionality
   - `fix:` — bug fix
   - `refactor:` — refactoring without behavior change
@@ -125,13 +131,14 @@ When in doubt: would a teammate understand this at a glance without untangling i
 
 - **Статусы:** `📋 запланировано` · `🚧 в работе` · `✅ готово` · `🧊 отложено`
 - **Приоритет:** `MVP` / `backlog`
-- **План создан / Завершено:** даты в ISO `YYYY-MM-DD`
+- **План создан:** дата появления плана фичи (когда строка заведена в роадмапе), ISO `YYYY-MM-DD`
+- **Завершено:** дата окончания имплементации, ISO `YYYY-MM-DD`
 - **Заметки:** короткий комментарий; № этапа из спеки (только для MVP-фич); ссылка на ADR
 
 Правила перехода статусов:
-- **Начало работы над фичей** → перевести строку в `🚧 в работе`, проставить ветку и дату «План создан».
+- **Заведение фичи** → строка со статусом `📋 запланировано`, проставить дату «План создан», зависимости (что должно быть готово раньше) и ссылку на спеку/план.
+- **Начало работы над фичей** → перевести строку в `🚧 в работе`, проставить ветку/PR.
 - **Завершение имплементации** → перевести в `✅ готово`, проставить дату «Завершено».
-- Заводя новую фичу, заполняй зависимости (что должно быть готово раньше) и ссылку на спеку/план.
 
 ### ADR — [docs/adr/](docs/adr/)
 
