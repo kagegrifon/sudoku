@@ -196,3 +196,32 @@ describe('TOGGLE_NOTE', () => {
     expect(next).toBe(state);
   });
 });
+
+describe('ERASE', () => {
+  it('очищает значение и пишет ход', () => {
+    let state = createInitialGameState('easy');
+    state = gameReducer(state, { type: 'PLACE_DIGIT', row: 0, col: 0, value: 1 });
+    const erased = gameReducer(state, { type: 'ERASE', row: 0, col: 0 });
+    expect(erased.currentGrid[0][0]).toBe(0);
+    expect(erased.history[erased.history.length - 1].prevValue).toBe(1);
+  });
+  it('очищает заметки и сохраняет снимок для undo', () => {
+    let state = createInitialGameState('easy');
+    state = gameReducer(state, { type: 'TOGGLE_NOTE', row: 0, col: 0, value: 4 });
+    const erased = gameReducer(state, { type: 'ERASE', row: 0, col: 0 });
+    expect(erased.notes[0][0]).toEqual([]);
+    expect(erased.history[erased.history.length - 1].clearedNotes).toEqual([
+      { row: 0, col: 0, prevNotes: [4] },
+    ]);
+  });
+  it('given-клетка — no-op', () => {
+    const state = createInitialGameState('easy');
+    const next = gameReducer(state, { type: 'ERASE', row: 0, col: 2 });
+    expect(next).toBe(state);
+  });
+  it('пустая клетка без заметок — no-op', () => {
+    const state = createInitialGameState('easy');
+    const next = gameReducer(state, { type: 'ERASE', row: 0, col: 0 });
+    expect(next).toBe(state);
+  });
+});

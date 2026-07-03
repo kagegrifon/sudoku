@@ -173,6 +173,33 @@ const newGame: Handler<Extract<GameAction, { type: 'NEW_GAME' }>> = (_state, act
 
 const restore: Handler<Extract<GameAction, { type: 'RESTORE' }>> = (_state, action) => action.state;
 
+const erase: Handler<Extract<GameAction, { type: 'ERASE' }>> = (state, action) => {
+  if (state.status === 'completed') return state;
+  const { row, col } = action;
+  if (isGiven(state, row, col)) return state;
+
+  const prevValue = state.currentGrid[row][col];
+  const prevNotes = state.notes[row][col];
+  if (prevValue === EMPTY_CELL && prevNotes.length === 0) return state;
+
+  const currentGrid = withCellValue(state.currentGrid, row, col, EMPTY_CELL);
+  const nextNotes = cloneNotes(state.notes);
+  nextNotes[row][col] = [];
+
+  const clearedNotes: Move['clearedNotes'] =
+    prevNotes.length > 0 ? [{ row, col, prevNotes: [...prevNotes] }] : [];
+  const move: Move = {
+    row,
+    col,
+    prevValue,
+    newValue: EMPTY_CELL,
+    wasNote: false,
+    wasMistake: false,
+    clearedNotes,
+  };
+  return { ...state, currentGrid, notes: nextNotes, history: [...state.history, move] };
+};
+
 const HANDLERS: {
   [K in GameAction['type']]: Handler<Extract<GameAction, { type: K }>>;
 } = {
@@ -181,7 +208,8 @@ const HANDLERS: {
   RESTORE: restore,
   PLACE_DIGIT: placeDigit,
   TOGGLE_NOTE: toggleNote,
-  // ERASE / UNDO добавляются в Tasks 5–6.
+  ERASE: erase,
+  // UNDO добавляется в Task 6.
 } as {
   [K in GameAction['type']]: Handler<Extract<GameAction, { type: K }>>;
 };
