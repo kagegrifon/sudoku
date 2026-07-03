@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { AppProvider, useAppView } from './AppContext';
 
@@ -34,5 +34,10 @@ describe('AppContext', () => {
     );
     fireEvent.click(screen.getByTestId('go-stats'));
     expect(screen.getByTestId('view').textContent).toBe('stats');
+  });
+  it('useAppView бросает ошибку вне провайдера', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    expect(() => render(<Probe />)).toThrow('useAppView должен использоваться внутри AppProvider');
+    spy.mockRestore();
   });
 });
