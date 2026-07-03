@@ -9,6 +9,8 @@ export interface BoardProps {
   selected: CellPosition | null;
   cellIsGiven(row: number, col: number): boolean;
   onSelectCell(args: { row: number; col: number }): void;
+  notes?: number[][][];
+  mistakes?: boolean[][];
 }
 
 const ROW_INDICES = Array.from({ length: GRID_SIZE }, (_, index) => index);
@@ -20,13 +22,15 @@ export default function Board({
   selected,
   cellIsGiven,
   onSelectCell,
+  notes,
+  mistakes,
 }: BoardProps) {
   return (
     <div className={styles.board} data-testid="board" role="grid">
       {ROW_INDICES.map((row) =>
         COL_INDICES.map((col) => {
           const pos = { row, col };
-          const highlight = computeHighlight({ pos, selected, grid, conflicts });
+          const highlight = computeHighlight({ pos, selected, grid, conflicts, mistakes });
           return (
             <Cell
               key={`${row}-${col}`}
@@ -35,6 +39,7 @@ export default function Board({
               value={grid[row][col]}
               given={cellIsGiven(row, col)}
               highlight={highlight}
+              notes={notes?.[row]?.[col]}
               onSelect={onSelectCell}
             />
           );

@@ -65,3 +65,26 @@
   color: var(--conflict-text, #d93636);
   background: var(--conflict-bg, #fbdcdc);
 }
+
+/* Ошибочная клетка (значение ≠ решению) — механика жизней. */
+.mistake {
+  color: var(--mistake-text, #d93636);
+  background: var(--mistake-bg, #ffd9d9);
+}
+
+/* Мини-сетка заметок-кандидатов внутри пустой клетки. */
+.notes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: 100%;
+  height: 100%;
+  font-size: clamp(7px, 1.9vmin, 12px);
+  line-height: 1;
+  color: var(--note-text, #64748b);
+}
+.note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
