@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { useEffect } from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup, waitFor, act } from '@testing-library/react';
 import { GameProvider, useGame, type GameApi } from './GameContext';
@@ -108,7 +109,9 @@ describe('GameContext', () => {
 /** Кладёт живой GameApi в ref, чтобы тест мог управлять игрой императивно. */
 function ApiProbe({ apiRef }: { apiRef: { current: GameApi | null } }) {
   const game = useGame();
-  apiRef.current = game;
+  useEffect(() => {
+    apiRef.current = game;
+  });
   return null;
 }
 

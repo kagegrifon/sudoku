@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import type { Difficulty } from '../core';
 import type { CompletedGame } from './storage/historyDb';
 import { filterByPeriod, computeStats, type StatsPeriod } from './statsService';
 
