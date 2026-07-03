@@ -103,3 +103,96 @@ describe('RESTORE', () => {
     expect(next.elapsedSeconds).toBe(42);
   });
 });
+
+describe('PLACE_DIGIT', () => {
+  it('вписывает верную цифру без потери жизни', () => {
+    const state = createInitialGameState('easy'); // (0,0) solution=5
+    const next = gameReducer(state, { type: 'PLACE_DIGIT', row: 0, col: 0, value: 5 });
+    expect(next.currentGrid[0][0]).toBe(5);
+    expect(next.lives).toBe(INITIAL_LIVES);
+    expect(next.history).toHaveLength(1);
+    expect(next.history[0].wasMistake).toBe(false);
+  });
+  it('неверная цифра вписывается и снимает жизнь', () => {
+    const state = createInitialGameState('easy');
+    const next = gameReducer(state, { type: 'PLACE_DIGIT', row: 0, col: 0, value: 1 });
+    expect(next.currentGrid[0][0]).toBe(1);
+    expect(next.lives).toBe(INITIAL_LIVES - 1);
+    expect(next.history[0].wasMistake).toBe(true);
+  });
+  it('given-клетка — no-op', () => {
+    const state = createInitialGameState('easy');
+    const next = gameReducer(state, { type: 'PLACE_DIGIT', row: 0, col: 2, value: 1 });
+    expect(next).toBe(state);
+  });
+  it('автоочистка убирает цифру из заметок соседей и пишет clearedNotes', () => {
+    let state = createInitialGameState('easy');
+    // Заметка 3 в (0,0) — сосед (0,1) по строке/блоку.
+    state = gameReducer(state, { type: 'TOGGLE_NOTE', row: 0, col: 0, value: 3 });
+    expect(state.notes[0][0]).toContain(3);
+    // Ставим 3 в (0,1) (solution=3) — автоочистка снимает 3 из заметок (0,0).
+    const next = gameReducer(state, { type: 'PLACE_DIGIT', row: 0, col: 1, value: 3 });
+    expect(next.notes[0][0]).not.toContain(3);
+    const move = next.history[next.history.length - 1];
+    expect(move.clearedNotes).toEqual([{ row: 0, col: 0, prevNotes: [3] }]);
+  });
+  it('верная последняя цифра завершает партию победой', () => {
+    mockPuzzle((() => {
+      const puzzle = solved.map((row) => [...row]);
+      puzzle[0][0] = 0; // единственная пустая
+      return puzzle;
+    })());
+    const state = createInitialGameState('easy');
+    const next = gameReducer(state, { type: 'PLACE_DIGIT', row: 0, col: 0, value: 5 });
+    expect(next.status).toBe('completed');
+    expect(next.result).toBe('won');
+  });
+  it('третья ошибка обнуляет жизни и завершает партию поражением', () => {
+    const state = createInitialGameState('easy'); // lives=3
+    const a = gameReducer(state, { type: 'PLACE_DIGIT', row: 0, col: 0, value: 1 }); // lives2
+    const b = gameReducer(a, { type: 'PLACE_DIGIT', row: 0, col: 0, value: 2 }); // lives1
+    const c = gameReducer(b, { type: 'PLACE_DIGIT', row: 0, col: 0, value: 4 }); // lives0
+    expect(c.lives).toBe(0);
+    expect(c.status).toBe('completed');
+    expect(c.result).toBe('lost');
+  });
+  it('после completed новые ходы игнорируются', () => {
+    const state: GameState = { ...createInitialGameState('easy'), status: 'completed', result: 'lost' };
+    const next = gameReducer(state, { type: 'PLACE_DIGIT', row: 0, col: 0, value: 5 });
+    expect(next).toBe(state);
+  });
+});
+
+describe('TOGGLE_NOTE', () => {
+  it('добавляет и убирает кандидата', () => {
+    const state = createInitialGameState('easy');
+    const added = gameReducer(state, { type: 'TOGGLE_NOTE', row: 0, col: 0, value: 4 });
+    expect(added.notes[0][0]).toEqual([4]);
+    const removed = gameReducer(added, { type: 'TOGGLE_NOTE', row: 0, col: 0, value: 4 });
+    expect(removed.notes[0][0]).toEqual([]);
+  });
+  it('держит кандидатов отсортированными', () => {
+    let state = createInitialGameState('easy');
+    state = gameReducer(state, { type: 'TOGGLE_NOTE', row: 0, col: 0, value: 7 });
+    state = gameReducer(state, { type: 'TOGGLE_NOTE', row: 0, col: 0, value: 2 });
+    expect(state.notes[0][0]).toEqual([2, 7]);
+  });
+  it('заметка пишет ход с wasNote и снимком prevNotes', () => {
+    const state = createInitialGameState('easy');
+    const next = gameReducer(state, { type: 'TOGGLE_NOTE', row: 0, col: 0, value: 4 });
+    const move = next.history[next.history.length - 1];
+    expect(move.wasNote).toBe(true);
+    expect(move.clearedNotes).toEqual([{ row: 0, col: 0, prevNotes: [] }]);
+  });
+  it('given-клетка — no-op', () => {
+    const state = createInitialGameState('easy');
+    const next = gameReducer(state, { type: 'TOGGLE_NOTE', row: 0, col: 2, value: 4 });
+    expect(next).toBe(state);
+  });
+  it('нельзя ставить заметку в заполненную клетку', () => {
+    let state = createInitialGameState('easy');
+    state = gameReducer(state, { type: 'PLACE_DIGIT', row: 0, col: 0, value: 5 });
+    const next = gameReducer(state, { type: 'TOGGLE_NOTE', row: 0, col: 0, value: 4 });
+    expect(next).toBe(state);
+  });
+});

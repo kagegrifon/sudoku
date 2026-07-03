@@ -2,6 +2,7 @@ import {
   generatePuzzle,
   cloneGrid,
   getBoxStart,
+  isSolved,
   EMPTY_CELL,
   GRID_SIZE,
   BOX_SIZE,
@@ -14,6 +15,7 @@ import {
   type GameState,
   type GameAction,
   type CellNotesSnapshot,
+  type Move,
 } from './gameTypes';
 
 export function createEmptyNotes(): number[][][] {
@@ -103,6 +105,64 @@ function autoclearNotes(
 
 type Handler<A extends GameAction> = (state: GameState, action: A) => GameState;
 
+const placeDigit: Handler<Extract<GameAction, { type: 'PLACE_DIGIT' }>> = (state, action) => {
+  if (state.status === 'completed') return state;
+  const { row, col, value } = action;
+  if (isGiven(state, row, col)) return state;
+
+  const prevValue = state.currentGrid[row][col];
+  const wasMistake = value !== state.solution[row][col];
+  const currentGrid = withCellValue(state.currentGrid, row, col, value);
+  const { notes, cleared } = autoclearNotes(state.notes, row, col, value);
+
+  const move: Move = {
+    row,
+    col,
+    prevValue,
+    newValue: value,
+    wasNote: false,
+    wasMistake,
+    clearedNotes: cleared,
+  };
+  const lives = wasMistake ? state.lives - 1 : state.lives;
+  const base: GameState = {
+    ...state,
+    currentGrid,
+    notes,
+    history: [...state.history, move],
+    lives,
+  };
+
+  if (lives <= 0) return { ...base, status: 'completed', result: 'lost' };
+  if (isSolved(currentGrid)) return { ...base, status: 'completed', result: 'won' };
+  return base;
+};
+
+const toggleNote: Handler<Extract<GameAction, { type: 'TOGGLE_NOTE' }>> = (state, action) => {
+  if (state.status === 'completed') return state;
+  const { row, col, value } = action;
+  if (isGiven(state, row, col)) return state;
+  if (state.currentGrid[row][col] !== EMPTY_CELL) return state;
+
+  const prevNotes = state.notes[row][col];
+  const nextNotes = cloneNotes(state.notes);
+  const alreadyNoted = prevNotes.includes(value);
+  nextNotes[row][col] = alreadyNoted
+    ? prevNotes.filter((candidate) => candidate !== value)
+    : [...prevNotes, value].sort((a, b) => a - b);
+
+  const move: Move = {
+    row,
+    col,
+    prevValue: EMPTY_CELL,
+    newValue: EMPTY_CELL,
+    wasNote: true,
+    wasMistake: false,
+    clearedNotes: [{ row, col, prevNotes: [...prevNotes] }],
+  };
+  return { ...state, notes: nextNotes, history: [...state.history, move] };
+};
+
 const tick: Handler<Extract<GameAction, { type: 'TICK' }>> = (state) => {
   if (state.status !== 'in_progress') return state;
   return { ...state, elapsedSeconds: state.elapsedSeconds + 1 };
@@ -119,7 +179,9 @@ const HANDLERS: {
   TICK: tick,
   NEW_GAME: newGame,
   RESTORE: restore,
-  // PLACE_DIGIT / TOGGLE_NOTE / ERASE / UNDO добавляются в Tasks 3–6.
+  PLACE_DIGIT: placeDigit,
+  TOGGLE_NOTE: toggleNote,
+  // ERASE / UNDO добавляются в Tasks 5–6.
 } as {
   [K in GameAction['type']]: Handler<Extract<GameAction, { type: K }>>;
 };
