@@ -225,3 +225,40 @@ describe('ERASE', () => {
     expect(next).toBe(state);
   });
 });
+
+describe('UNDO', () => {
+  it('откатывает значение и снимает ход из истории', () => {
+    let state = createInitialGameState('easy');
+    state = gameReducer(state, { type: 'PLACE_DIGIT', row: 0, col: 0, value: 5 });
+    const undone = gameReducer(state, { type: 'UNDO' });
+    expect(undone.currentGrid[0][0]).toBe(0);
+    expect(undone.history).toHaveLength(0);
+  });
+  it('точно восстанавливает заметки соседей после автоочистки', () => {
+    let state = createInitialGameState('easy');
+    state = gameReducer(state, { type: 'TOGGLE_NOTE', row: 0, col: 0, value: 3 });
+    state = gameReducer(state, { type: 'PLACE_DIGIT', row: 0, col: 1, value: 3 }); // автоочистка (0,0)
+    expect(state.notes[0][0]).not.toContain(3);
+    const undone = gameReducer(state, { type: 'UNDO' });
+    expect(undone.notes[0][0]).toEqual([3]); // заметка соседа восстановлена
+    expect(undone.currentGrid[0][1]).toBe(0);
+  });
+  it('undo НЕ возвращает потерянную жизнь', () => {
+    let state = createInitialGameState('easy');
+    state = gameReducer(state, { type: 'PLACE_DIGIT', row: 0, col: 0, value: 1 }); // ошибка, lives-1
+    expect(state.lives).toBe(INITIAL_LIVES - 1);
+    const undone = gameReducer(state, { type: 'UNDO' });
+    expect(undone.lives).toBe(INITIAL_LIVES - 1); // жизнь не вернулась
+    expect(undone.currentGrid[0][0]).toBe(0);
+  });
+  it('undo заметки возвращает прежние кандидаты', () => {
+    let state = createInitialGameState('easy');
+    state = gameReducer(state, { type: 'TOGGLE_NOTE', row: 0, col: 0, value: 4 });
+    const undone = gameReducer(state, { type: 'UNDO' });
+    expect(undone.notes[0][0]).toEqual([]);
+  });
+  it('пустая история — no-op', () => {
+    const state = createInitialGameState('easy');
+    expect(gameReducer(state, { type: 'UNDO' })).toBe(state);
+  });
+});

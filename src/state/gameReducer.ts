@@ -200,24 +200,36 @@ const erase: Handler<Extract<GameAction, { type: 'ERASE' }>> = (state, action) =
   return { ...state, currentGrid, notes: nextNotes, history: [...state.history, move] };
 };
 
+const undo: Handler<Extract<GameAction, { type: 'UNDO' }>> = (state) => {
+  if (state.status === 'completed') return state;
+  if (state.history.length === 0) return state;
+
+  const move = state.history[state.history.length - 1];
+  const currentGrid = withCellValue(state.currentGrid, move.row, move.col, move.prevValue);
+  const nextNotes = cloneNotes(state.notes);
+  for (const snapshot of move.clearedNotes) {
+    nextNotes[snapshot.row][snapshot.col] = [...snapshot.prevNotes];
+  }
+  // Жизни намеренно не восстанавливаем: потерянная жизнь остаётся потерянной.
+  return { ...state, currentGrid, notes: nextNotes, history: state.history.slice(0, -1) };
+};
+
 const HANDLERS: {
   [K in GameAction['type']]: Handler<Extract<GameAction, { type: K }>>;
 } = {
-  TICK: tick,
-  NEW_GAME: newGame,
-  RESTORE: restore,
   PLACE_DIGIT: placeDigit,
   TOGGLE_NOTE: toggleNote,
   ERASE: erase,
-  // UNDO добавляется в Task 6.
-} as {
-  [K in GameAction['type']]: Handler<Extract<GameAction, { type: K }>>;
+  UNDO: undo,
+  TICK: tick,
+  NEW_GAME: newGame,
+  RESTORE: restore,
 };
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
-  const handler = HANDLERS[action.type] as Handler<GameAction> | undefined;
-  return handler ? handler(state, action) : state;
+  const handler = HANDLERS[action.type] as Handler<GameAction>;
+  return handler(state, action);
 }
 
-// Экспортируем приватные хелперы для последующих handlers (используются в Tasks 3–6).
+// Экспортируем приватные хелперы для тестов и переиспользования вне reducer'а.
 export { withCellValue, cloneNotes, autoclearNotes };
