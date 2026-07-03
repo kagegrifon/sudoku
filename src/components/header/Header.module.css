@@ -1,0 +1,59 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  max-width: min(92vw, 540px);
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.timer {
+  font-variant-numeric: tabular-nums;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--cell-text, #1b2430);
+  min-width: 56px;
+}
+
+.lives {
+  display: flex;
+  gap: 2px;
+  font-size: 20px;
+}
+.heartFull {
+  color: var(--heart-full, #e5484d);
+}
+.heartEmpty {
+  color: var(--heart-empty, #cbd5e1);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action,
+.actionActive {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 12px;
+  font-size: 16px;
+  font-weight: 600;
+  border: 1px solid var(--pad-border, #cbd5e1);
+  border-radius: 10px;
+  background: var(--pad-bg, #f8fafc);
+  color: var(--pad-text, #1b2430);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.actionActive {
+  background: var(--selected-bg, #a9c7f5);
+  border-color: var(--cell-editable, #2563eb);
+}
+.action:disabled {
+  opacity: 0.4;
+  cursor: default;
+}

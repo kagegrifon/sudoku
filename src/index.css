@@ -18,6 +18,12 @@
   --pad-active-bg: #e2e8f0;
   --pad-border: #cbd5e1;
   --pad-text: #1b2430;
+
+  --mistake-bg: #ffd9d9;
+  --mistake-text: #d93636;
+  --note-text: #64748b;
+  --heart-full: #e5484d;
+  --heart-empty: #cbd5e1;
 }
 
 * {
@@ -39,5 +45,13 @@ body {
   body {
     background: #0f141b;
     color: #e6ebf2;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --mistake-bg: #5b1d1d;
+    --note-text: #94a3b8;
+    --heart-empty: #3a4553;
   }
 }

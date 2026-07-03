@@ -34,7 +34,27 @@ describe('computeHighlight', () => {
       grid,
       conflicts,
     });
-    expect(highlight).toEqual({ selected: false, peer: false, sameValue: false, conflict: true });
+    expect(highlight).toEqual({
+      selected: false,
+      peer: false,
+      sameValue: false,
+      conflict: true,
+      mistake: false,
+    });
+  });
+
+  it('mistake прокидывается из массива mistakes', () => {
+    const grid = emptyGrid();
+    const mistakes = noConflicts();
+    mistakes[2][2] = true;
+    const highlight = computeHighlight({
+      pos: { row: 2, col: 2 },
+      selected: null,
+      grid,
+      conflicts: noConflicts(),
+      mistakes,
+    });
+    expect(highlight.mistake).toBe(true);
   });
 
   it('сама выбранная клетка помечена selected, не peer и не sameValue', () => {

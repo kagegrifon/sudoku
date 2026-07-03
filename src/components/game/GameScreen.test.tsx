@@ -1,12 +1,11 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import GameScreen from './GameScreen';
+import { GameProvider } from '../../state/GameContext';
 import * as core from '../../core';
 import type { Grid } from '../../core';
 
-// Детерминированная головоломка: одна пустая клетка [0][0], остальное решено.
-// Позволяет проверить ввод и детект победы без случайной генерации.
 const solved: Grid = [
   [5, 3, 4, 6, 7, 8, 9, 1, 2],
   [6, 7, 2, 1, 9, 5, 3, 4, 8],
@@ -18,50 +17,93 @@ const solved: Grid = [
   [2, 8, 7, 4, 1, 9, 6, 3, 5],
   [3, 4, 5, 2, 8, 6, 1, 7, 9],
 ];
-
-function puzzleWithOneHole(): Grid {
-  const puzzle = solved.map((row) => [...row]);
-  puzzle[0][0] = 0; // единственная пустая клетка
+function puzzleWithHoles(): Grid {
+  const puzzle = solved.map((r) => [...r]);
+  puzzle[0][0] = 0; // solution 5
+  puzzle[0][1] = 0; // solution 3
+  return puzzle;
+}
+function puzzleOneHole(): Grid {
+  const puzzle = solved.map((r) => [...r]);
+  puzzle[0][0] = 0; // solution 5
   return puzzle;
 }
 
+function mockPuzzle(puzzle: Grid) {
+  vi.spyOn(core, 'generatePuzzle').mockReturnValue({ puzzle, solution: solved });
+}
+
+function renderScreen() {
+  return render(
+    <GameProvider>
+      <GameScreen />
+    </GameProvider>,
+  );
+}
+
 beforeEach(() => {
-  cleanup();
+  localStorage.clear();
   vi.restoreAllMocks();
-  vi.spyOn(core, 'generatePuzzle').mockReturnValue({
-    puzzle: puzzleWithOneHole(),
-    solution: solved,
-  });
+  mockPuzzle(puzzleWithHoles());
 });
+afterEach(cleanup);
 
 describe('GameScreen', () => {
-  it('рендерит сетку и панель', () => {
-    render(<GameScreen />);
+  it('рендерит поле, панель и хедер', () => {
+    renderScreen();
     expect(screen.getByTestId('board')).toBeTruthy();
     expect(screen.getByTestId('numberpad')).toBeTruthy();
+    expect(screen.getByTestId('header')).toBeTruthy();
   });
 
-  it('given-клетка отображает своё значение', () => {
-    render(<GameScreen />);
-    expect(screen.getByTestId('cell-0-1').textContent).toBe('3');
-  });
-
-  it('ввод цифры в выбранную клетку заполняет её', () => {
-    render(<GameScreen />);
+  it('ввод цифры заполняет выбранную клетку', () => {
+    renderScreen();
     fireEvent.click(screen.getByTestId('cell-0-0'));
     fireEvent.click(screen.getByTestId('digit-5'));
     expect(screen.getByTestId('cell-0-0').textContent).toBe('5');
   });
 
-  it('правильная последняя цифра завершает партию — показывает оверлей победы', () => {
-    render(<GameScreen />);
+  it('в режиме заметок цифра становится кандидатом', () => {
+    renderScreen();
+    fireEvent.click(screen.getByTestId('notes-toggle'));
     fireEvent.click(screen.getByTestId('cell-0-0'));
-    fireEvent.click(screen.getByTestId('digit-5')); // верное значение [0][0] = 5
-    expect(screen.getByTestId('win-overlay')).toBeTruthy();
+    fireEvent.click(screen.getByTestId('digit-4'));
+    expect(screen.getByTestId('notes-0-0')).toBeTruthy();
   });
 
-  it('до победы оверлей не показан', () => {
-    render(<GameScreen />);
-    expect(screen.queryByTestId('win-overlay')).toBeNull();
+  it('ошибка снижает число жизней (одно сердце гаснет)', () => {
+    renderScreen();
+    fireEvent.click(screen.getByTestId('cell-0-0'));
+    fireEvent.click(screen.getByTestId('digit-1')); // неверно (solution 5)
+    // Три слота, одно должно стать пустым ♡.
+    expect(screen.getByTestId('lives').textContent).toContain('♡');
+  });
+
+  it('undo откатывает ход', () => {
+    renderScreen();
+    fireEvent.click(screen.getByTestId('cell-0-0'));
+    fireEvent.click(screen.getByTestId('digit-5'));
+    expect(screen.getByTestId('cell-0-0').textContent).toBe('5');
+    fireEvent.click(screen.getByTestId('undo'));
+    expect(screen.getByTestId('cell-0-0').textContent).toBe('');
+  });
+
+  it('завершение партии показывает WinScreen (победа)', () => {
+    mockPuzzle(puzzleOneHole());
+    renderScreen();
+    fireEvent.click(screen.getByTestId('cell-0-0'));
+    fireEvent.click(screen.getByTestId('digit-5')); // верно → победа
+    expect(screen.getByTestId('win-screen-won')).toBeTruthy();
+  });
+
+  it('до конца партии WinScreen не показан', () => {
+    renderScreen();
+    expect(screen.queryByTestId('win-screen')).toBeNull();
+  });
+
+  it('«Новая» открывает выбор сложности', () => {
+    renderScreen();
+    fireEvent.click(screen.getByTestId('new-game'));
+    expect(screen.getByTestId('difficulty-picker')).toBeTruthy();
   });
 });

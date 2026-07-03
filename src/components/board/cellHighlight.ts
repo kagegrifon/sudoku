@@ -10,6 +10,7 @@ export interface CellHighlight {
   peer: boolean;
   sameValue: boolean;
   conflict: boolean;
+  mistake: boolean;
 }
 
 /** true, если клетки a и b делят строку, столбец или блок 3×3 (та же клетка — тоже true). */
@@ -26,6 +27,7 @@ interface ComputeHighlightArgs {
   selected: CellPosition | null;
   grid: Grid;
   conflicts: boolean[][];
+  mistakes?: boolean[][];
 }
 
 export function computeHighlight({
@@ -33,23 +35,24 @@ export function computeHighlight({
   selected,
   grid,
   conflicts,
+  mistakes,
 }: ComputeHighlightArgs): CellHighlight {
   const conflict = conflicts[pos.row][pos.col];
+  const mistake = mistakes?.[pos.row]?.[pos.col] ?? false;
 
   if (!selected) {
-    return { selected: false, peer: false, sameValue: false, conflict };
+    return { selected: false, peer: false, sameValue: false, conflict, mistake };
   }
 
   const isSelectedCell = pos.row === selected.row && pos.col === selected.col;
   if (isSelectedCell) {
-    return { selected: true, peer: false, sameValue: false, conflict };
+    return { selected: true, peer: false, sameValue: false, conflict, mistake };
   }
 
   const peer = isSameUnit(pos, selected);
-
   const cellValue = grid[pos.row][pos.col];
   const selectedValue = grid[selected.row][selected.col];
   const sameValue = cellValue !== EMPTY_CELL && cellValue === selectedValue;
 
-  return { selected: false, peer, sameValue, conflict };
+  return { selected: false, peer, sameValue, conflict, mistake };
 }

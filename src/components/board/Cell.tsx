@@ -9,6 +9,7 @@ export interface CellProps {
   value: number;
   given: boolean;
   highlight: CellHighlight;
+  notes?: number[];
   onSelect(args: { row: number; col: number }): void;
 }
 
@@ -18,14 +19,19 @@ const HIGHLIGHT_CLASSES: Array<{ active: (h: CellHighlight) => boolean; classNam
   { active: (h) => h.sameValue, className: styles.sameValue },
   { active: (h) => h.selected, className: styles.selected },
   { active: (h) => h.conflict, className: styles.conflict },
+  { active: (h) => h.mistake, className: styles.mistake },
 ];
 
-function CellComponent({ row, col, value, given, highlight, onSelect }: CellProps) {
+const NOTE_SLOTS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+function CellComponent({ row, col, value, given, highlight, notes = [], onSelect }: CellProps) {
   const highlightClasses = HIGHLIGHT_CLASSES.filter((entry) => entry.active(highlight)).map(
     (entry) => entry.className,
   );
   const givenClass = given ? styles.given : styles.editable;
   const className = [styles.cell, givenClass, ...highlightClasses].join(' ');
+
+  const showNotes = value === EMPTY_CELL && notes.length > 0;
   const displayValue = value === EMPTY_CELL ? '' : String(value);
 
   return (
@@ -35,7 +41,17 @@ function CellComponent({ row, col, value, given, highlight, onSelect }: CellProp
       data-testid={`cell-${row}-${col}`}
       onClick={() => onSelect({ row, col })}
     >
-      {displayValue}
+      {showNotes ? (
+        <span className={styles.notes} data-testid={`notes-${row}-${col}`}>
+          {NOTE_SLOTS.map((candidate) => (
+            <span key={candidate} className={styles.note}>
+              {notes.includes(candidate) ? candidate : ''}
+            </span>
+          ))}
+        </span>
+      ) : (
+        displayValue
+      )}
     </button>
   );
 }
