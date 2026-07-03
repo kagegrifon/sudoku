@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
   padding: 16px;
   box-sizing: border-box;
   min-height: 100svh;
@@ -23,55 +23,16 @@
   gap: 12px;
 }
 
-.newGame {
-  min-height: 44px;
-  padding: 0 20px;
-  font-size: 16px;
-  font-weight: 600;
-  border: 1px solid var(--pad-border, #cbd5e1);
-  border-radius: 10px;
-  background: var(--pad-bg, #f8fafc);
-  color: var(--pad-text, #1b2430);
-  cursor: pointer;
-}
-
-/* Landscape / планшет: поле и панель бок о бок. */
+/* Landscape / планшет: поле и панель бок о бок; хедер сверху на всю ширину. */
 @media (orientation: landscape) {
   .screen {
-    flex-direction: row;
+    flex-flow: row wrap;
     align-items: center;
     justify-content: center;
-    gap: 32px;
+    gap: 24px;
   }
   .boardArea,
   .padArea {
     width: auto;
   }
-}
-
-.winOverlay {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(15, 23, 42, 0.55);
-  z-index: 10;
-}
-
-.winCard {
-  background: var(--cell-bg, #fff);
-  color: var(--cell-text, #1b2430);
-  padding: 28px 32px;
-  border-radius: 16px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-}
-
-.winTitle {
-  margin: 0;
-  font-size: 24px;
 }
