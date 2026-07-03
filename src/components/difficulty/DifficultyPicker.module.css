@@ -1,0 +1,56 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.55);
+  z-index: 20;
+}
+
+.card {
+  background: var(--cell-bg, #fff);
+  color: var(--cell-text, #1b2430);
+  padding: 24px 28px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 260px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.title {
+  margin: 0;
+  font-size: 20px;
+  text-align: center;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.option {
+  min-height: 48px;
+  font-size: 16px;
+  font-weight: 600;
+  border: 1px solid var(--pad-border, #cbd5e1);
+  border-radius: 10px;
+  background: var(--pad-bg, #f8fafc);
+  color: var(--pad-text, #1b2430);
+  cursor: pointer;
+}
+.option:active {
+  background: var(--selected-bg, #a9c7f5);
+}
+
+.cancel {
+  min-height: 40px;
+  font-size: 14px;
+  border: none;
+  background: transparent;
+  color: var(--cell-editable, #2563eb);
+  cursor: pointer;
+}
