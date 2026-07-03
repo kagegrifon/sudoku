@@ -2,7 +2,6 @@ import {
   generatePuzzle,
   cloneGrid,
   getBoxStart,
-  isSolved,
   EMPTY_CELL,
   GRID_SIZE,
   BOX_SIZE,
@@ -14,7 +13,6 @@ import {
   INITIAL_LIVES,
   type GameState,
   type GameAction,
-  type Move,
   type CellNotesSnapshot,
 } from './gameTypes';
 
