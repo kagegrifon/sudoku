@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Difficulty } from '../../core';
+import { useAppView } from '../../state/AppContext';
 import { getAllCompletedGames, type CompletedGame } from '../../state/storage/historyDb';
 import {
   filterByPeriod,
@@ -83,6 +84,7 @@ function DifficultyBreakdown({ stats }: { stats: PeriodStats }) {
 }
 
 export default function StatsView() {
+  const { setActiveView } = useAppView();
   const [period, setPeriod] = useState<StatsPeriod>('all');
   const [games, setGames] = useState<CompletedGame[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -107,6 +109,15 @@ export default function StatsView() {
 
   return (
     <div className={styles.screen} data-testid="stats-view">
+      <button
+        type="button"
+        className={styles.periodButton}
+        data-testid="toggle-game"
+        onClick={() => setActiveView('game')}
+      >
+        ← В игру
+      </button>
+
       <div className={styles.periods}>
         {PERIODS.map((option) => {
           const isActive = option.id === period;
