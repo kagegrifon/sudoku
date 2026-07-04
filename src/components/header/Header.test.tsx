@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import Header from './Header';
 import { GameProvider } from '../../state/GameContext';
+import { AppProvider } from '../../state/AppContext';
 import * as core from '../../core';
 import type { Grid } from '../../core';
 
@@ -32,9 +33,11 @@ afterEach(cleanup);
 
 function renderHeader(onNewGame = () => {}) {
   return render(
-    <GameProvider>
-      <Header onNewGame={onNewGame} />
-    </GameProvider>,
+    <AppProvider>
+      <GameProvider>
+        <Header onNewGame={onNewGame} />
+      </GameProvider>
+    </AppProvider>,
   );
 }
 
@@ -63,5 +66,12 @@ describe('Header', () => {
     expect(toggle.getAttribute('aria-pressed')).toBe('false');
     fireEvent.click(toggle);
     expect(toggle.getAttribute('aria-pressed')).toBe('true');
+  });
+  it('кнопка toggle-stats присутствует и обрабатывает клик', () => {
+    renderHeader();
+    const toggle = screen.getByTestId('toggle-stats');
+    expect(toggle).toBeInTheDocument();
+    fireEvent.click(toggle);
+    // Переход вида проверяется на уровне App (App.test.tsx); здесь — что клик не бросает.
   });
 });

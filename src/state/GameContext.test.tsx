@@ -1,11 +1,18 @@
 // @vitest-environment jsdom
+import { useEffect } from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import { GameProvider, useGame } from './GameContext';
+import { render, screen, fireEvent, cleanup, waitFor, act } from '@testing-library/react';
+import { GameProvider, useGame, type GameApi } from './GameContext';
 import { GAME_STORAGE_KEY } from './storage/localGame';
 import { GAME_SCHEMA_VERSION } from './gameTypes';
 import * as core from '../core';
 import type { Grid } from '../core';
+import * as historyDb from './storage/historyDb';
+
+vi.mock('./storage/historyDb', () => ({
+  recordCompletedGame: vi.fn().mockResolvedValue(undefined),
+  getAllCompletedGames: vi.fn().mockResolvedValue([]),
+}));
 
 const solved: Grid = [
   [5, 3, 4, 6, 7, 8, 9, 1, 2],
@@ -96,5 +103,124 @@ describe('GameContext', () => {
     );
     // Восстановлено значение 4, а не сгенерированная пустая клетка.
     expect(screen.getByTestId('cell00').textContent).toBe('4');
+  });
+});
+
+/** Кладёт живой GameApi в ref, чтобы тест мог управлять игрой императивно. */
+function ApiProbe({ apiRef }: { apiRef: { current: GameApi | null } }) {
+  const game = useGame();
+  useEffect(() => {
+    apiRef.current = game;
+  });
+  return null;
+}
+
+/** Рендерит GameProvider и возвращает ref, хранящий актуальный GameApi. */
+function renderGameApi(): { current: GameApi | null } {
+  const apiRef: { current: GameApi | null } = { current: null };
+  render(
+    <GameProvider>
+      <ApiProbe apiRef={apiRef} />
+    </GameProvider>,
+  );
+  return apiRef;
+}
+
+/** Дозаписывает все пустые клетки решением — партия переходит в won. */
+function fillFromSolution(apiRef: { current: GameApi | null }): void {
+  const { initialGrid, solution } = apiRef.current!.state;
+  for (let row = 0; row < 9; row += 1) {
+    for (let col = 0; col < 9; col += 1) {
+      if (initialGrid[row][col] !== 0) continue;
+      act(() => {
+        apiRef.current!.inputDigit({ row, col, value: solution[row][col] });
+      });
+    }
+  }
+}
+
+/** Трижды вписывает заведомо неверную цифру в пустую клетку — партия переходит в lost. */
+function loseAllLives(apiRef: { current: GameApi | null }): void {
+  const { initialGrid, solution } = apiRef.current!.state;
+  let row = 0;
+  let col = 0;
+  outer: for (row = 0; row < 9; row += 1) {
+    for (col = 0; col < 9; col += 1) {
+      if (initialGrid[row][col] === 0) break outer;
+    }
+  }
+  const wrongValue = solution[row][col] === 1 ? 2 : 1;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    act(() => {
+      apiRef.current!.inputDigit({ row, col, value: wrongValue });
+    });
+  }
+}
+
+/**
+ * Делает один ход, чтобы партия считалась «начатой», но НЕ завершал её:
+ * вписывает заведомо неверную цифру (в тестовой сетке — один «пробел» —
+ * верное значение сразу означало бы победу).
+ */
+function makeOneMove(apiRef: { current: GameApi | null }): void {
+  const { initialGrid, solution } = apiRef.current!.state;
+  let row = 0;
+  let col = 0;
+  outer: for (row = 0; row < 9; row += 1) {
+    for (col = 0; col < 9; col += 1) {
+      if (initialGrid[row][col] === 0) break outer;
+    }
+  }
+  const wrongValue = solution[row][col] === 1 ? 2 : 1;
+  act(() => {
+    apiRef.current!.inputDigit({ row, col, value: wrongValue });
+  });
+}
+
+describe('GameProvider — запись CompletedGame', () => {
+  beforeEach(() => {
+    vi.mocked(historyDb.recordCompletedGame).mockClear();
+  });
+
+  it('победа пишет outcome=won ровно один раз', async () => {
+    const api = renderGameApi();
+    fillFromSolution(api);
+    await waitFor(() => {
+      expect(vi.mocked(historyDb.recordCompletedGame)).toHaveBeenCalledTimes(1);
+    });
+    expect(vi.mocked(historyDb.recordCompletedGame).mock.calls[0][0]).toMatchObject({
+      outcome: 'won',
+    });
+  });
+
+  it('поражение (0 жизней) пишет outcome=lost', async () => {
+    const api = renderGameApi();
+    loseAllLives(api);
+    await waitFor(() => {
+      const calls = vi.mocked(historyDb.recordCompletedGame).mock.calls;
+      expect(calls.some((call) => call[0].outcome === 'lost')).toBe(true);
+    });
+  });
+
+  it('новая игра поверх начатой in_progress пишет outcome=abandoned', async () => {
+    const api = renderGameApi();
+    makeOneMove(api);
+    act(() => {
+      api.current!.newGame('easy');
+    });
+    await waitFor(() => {
+      const calls = vi.mocked(historyDb.recordCompletedGame).mock.calls;
+      expect(calls.some((call) => call[0].outcome === 'abandoned')).toBe(true);
+    });
+  });
+
+  it('новая игра поверх нетронутой партии не пишет abandoned', async () => {
+    const api = renderGameApi();
+    act(() => {
+      api.current!.newGame('easy');
+    });
+    await waitFor(() => {}, { timeout: 50 }).catch(() => {});
+    const calls = vi.mocked(historyDb.recordCompletedGame).mock.calls;
+    expect(calls.some((call) => call[0].outcome === 'abandoned')).toBe(false);
   });
 });

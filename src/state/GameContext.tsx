@@ -15,6 +15,7 @@ import { gameReducer, createInitialGameState } from './gameReducer';
 import type { GameState, GameAction, GameStatus } from './gameTypes';
 import { loadGame, saveGame } from './storage/localGame';
 import { loadSettings, saveSettings } from './storage/localSettings';
+import { recordCompletedGame } from './storage/historyDb';
 
 const SAVE_DEBOUNCE_MS = 400;
 const TIMER_SAVE_INTERVAL_MS = 5000;
@@ -91,6 +92,22 @@ function useGamePersistence(state: GameState): void {
   }, []);
 }
 
+/** Пишет CompletedGame один раз при переходе партии в 'completed'. */
+function useRecordCompletion(state: GameState): void {
+  const prevStatus = useRef(state.status);
+  useEffect(() => {
+    const justCompleted = prevStatus.current !== 'completed' && state.status === 'completed';
+    prevStatus.current = state.status;
+    if (!justCompleted || state.result === undefined) return;
+    recordCompletedGame({
+      difficulty: state.difficulty,
+      durationSeconds: state.elapsedSeconds,
+      completedAt: new Date().toISOString(),
+      outcome: state.result,
+    });
+  }, [state.status, state.result, state.difficulty, state.elapsedSeconds]);
+}
+
 function useGameTimer({
   status,
   dispatch,
@@ -126,6 +143,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   useGamePersistence(state);
   useGameTimer({ status: state.status, dispatch });
+  useRecordCompletion(state);
 
   const notesMode = settings.notesMode;
 
@@ -135,6 +153,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
   };
 
   const newGame = (difficulty: Difficulty) => {
+    const abandoningStartedGame =
+      state.status === 'in_progress' && (state.history.length > 0 || state.elapsedSeconds > 0);
+    if (abandoningStartedGame) {
+      recordCompletedGame({
+        difficulty: state.difficulty,
+        durationSeconds: state.elapsedSeconds,
+        completedAt: new Date().toISOString(),
+        outcome: 'abandoned',
+      });
+    }
     setSettings((prev) => ({ ...prev, lastDifficulty: difficulty }));
     dispatch({ type: 'NEW_GAME', difficulty });
   };
