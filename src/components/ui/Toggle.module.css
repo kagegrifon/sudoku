@@ -1,0 +1,39 @@
+.trackOff,
+.trackOn {
+  width: 46px;
+  height: 28px;
+  border-radius: 14px;
+  border: 0;
+  padding: 0;
+  position: relative;
+  flex: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.trackOff {
+  background: var(--heart-off);
+}
+
+.trackOn {
+  background: var(--accent);
+}
+
+.thumb {
+  position: absolute;
+  top: 2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: left 0.15s ease;
+}
+
+.trackOff .thumb {
+  left: 2px;
+}
+
+.trackOn .thumb {
+  left: 20px;
+}

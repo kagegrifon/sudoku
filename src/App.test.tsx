@@ -6,6 +6,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 vi.mock('./state/storage/historyDb', () => ({
   getAllCompletedGames: vi.fn().mockResolvedValue([]),
   recordCompletedGame: vi.fn().mockResolvedValue(undefined),
+  clearAllCompletedGames: vi.fn().mockResolvedValue(undefined),
 }));
 
 import App from './App';
@@ -16,9 +17,11 @@ describe('App — навигация', () => {
     expect(screen.getByTestId('home-screen')).toBeInTheDocument();
   });
 
-  it('со старта: Новая игра открывает игровой экран', async () => {
+  it('со старта: Новая игра → выбор сложности → игровой экран', async () => {
     render(<App />);
     fireEvent.click(screen.getByTestId('home-new-game'));
+    // Открывается выбор сложности; выбираем — попадаем в игру.
+    fireEvent.click(screen.getByTestId('difficulty-easy'));
     await waitFor(() => {
       expect(screen.getByTestId('header')).toBeInTheDocument();
     });

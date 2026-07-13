@@ -2,43 +2,16 @@ import { AppProvider, useAppView, type Screen } from './state/AppContext';
 import { SettingsProvider } from './state/SettingsContext';
 import { RecordsProvider } from './state/RecordsContext';
 import { GameProvider } from './state/GameContext';
+import HomeScreen from './components/home/HomeScreen';
 import GameScreen from './components/game/GameScreen';
+import SettingsScreen from './components/settings/SettingsScreen';
 import StatsView from './components/stats/StatsView';
 import './App.css';
 
-// Заглушки для home/settings — заменяются настоящими экранами в Phase 5.
-function HomePlaceholder() {
-  const { navigate } = useAppView();
-  return (
-    <div data-testid="home-screen">
-      <button type="button" data-testid="home-new-game" onClick={() => navigate('game')}>
-        Новая игра
-      </button>
-      <button type="button" data-testid="home-stats" onClick={() => navigate('stats')}>
-        Статистика
-      </button>
-      <button type="button" data-testid="home-settings" onClick={() => navigate('settings')}>
-        Настройки
-      </button>
-    </div>
-  );
-}
-
-function SettingsPlaceholder() {
-  const { goBack } = useAppView();
-  return (
-    <div data-testid="settings-screen">
-      <button type="button" data-testid="settings-back" onClick={goBack}>
-        ‹ назад
-      </button>
-    </div>
-  );
-}
-
 const SCREENS: Record<Screen, () => JSX.Element> = {
-  home: HomePlaceholder,
+  home: HomeScreen,
   game: GameScreen,
-  settings: SettingsPlaceholder,
+  settings: SettingsScreen,
   stats: StatsView,
 };
 

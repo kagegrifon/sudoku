@@ -1,0 +1,137 @@
+.screen {
+  min-height: 100vh;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 44px 20px 30px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.back {
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+
+.groupLabel {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0 6px 8px;
+}
+
+.segment {
+  display: flex;
+  gap: 4px;
+  background: var(--divider);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 22px;
+}
+
+.segmentItem,
+.segmentItemActive {
+  flex: 1;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 0;
+  border-radius: 9px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--ink-subtle);
+}
+
+.segmentItemActive {
+  color: var(--ink);
+  background: var(--card);
+  box-shadow: 0 1px 3px rgba(20, 30, 60, 0.14);
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 2px 16px;
+  margin-bottom: 22px;
+  box-shadow: var(--shadow-card);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--divider);
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.rowText {
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.versionText {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.versionNumber {
+  font-size: 13px;
+  color: var(--ink-faint);
+}
+
+.updateButton {
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.updateButton:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.resetButton {
+  border: 0;
+  background: none;
+  color: var(--heart-on);
+  font-size: 15px;
+  font-weight: 500;
+  padding: 1px 0;
+  font-family: inherit;
+  cursor: pointer;
+}
