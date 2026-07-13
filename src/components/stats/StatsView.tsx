@@ -2,13 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import type { Difficulty } from '../../core';
 import { useAppView } from '../../state/AppContext';
 import { getAllCompletedGames, type CompletedGame } from '../../state/storage/historyDb';
-import {
-  filterByPeriod,
-  computeStats,
-  type StatsPeriod,
-  type DifficultyStats,
-  type PeriodStats,
-} from '../../state/statsService';
+import { filterByPeriod, computeStats, type StatsPeriod } from '../../state/statsService';
+import { DIFFICULTY_LABELS, DIFFICULTY_COLORS } from '../difficultyLabels';
+import { formatTime } from '../header/formatTime';
 import styles from './StatsView.module.css';
 
 const PERIODS: Array<{ id: StatsPeriod; label: string }> = [
@@ -18,17 +14,11 @@ const PERIODS: Array<{ id: StatsPeriod; label: string }> = [
   { id: 'all', label: 'Всё' },
 ];
 
-const DIFFICULTY_LABELS: Record<Difficulty, string> = {
-  easy: 'Лёгкий',
-  medium: 'Средний',
-  hard: 'Сложный',
-};
+const DIFFICULTIES: Difficulty[] = ['easy', 'medium', 'hard'];
 
 function formatSeconds(seconds: number | null): string {
   if (seconds === null) return '—';
-  const minutes = Math.floor(seconds / 60);
-  const rest = seconds % 60;
-  return `${minutes}:${String(rest).padStart(2, '0')}`;
+  return formatTime(seconds);
 }
 
 function formatPercent(rate: number): string {
@@ -38,6 +28,49 @@ function formatPercent(rate: number): string {
 function formatFavorite(favorite: Difficulty | null): string {
   if (favorite === null) return '—';
   return DIFFICULTY_LABELS[favorite];
+}
+
+interface SummaryCardProps {
+  label: string;
+  value: string;
+  valueClass?: string;
+  testId: string;
+}
+
+function SummaryCard({ label, value, valueClass, testId }: SummaryCardProps) {
+  return (
+    <div className={styles.summaryCard}>
+      <div className={styles.summaryLabel}>{label}</div>
+      <div className={valueClass ?? styles.summaryValue} data-testid={testId}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
+interface DifficultyRowProps {
+  difficulty: Difficulty;
+  wins: number;
+  bestTimeSeconds: number | null;
+}
+
+function DifficultyRow({ difficulty, wins, bestTimeSeconds }: DifficultyRowProps) {
+  return (
+    <div className={styles.diffRow}>
+      <div className={styles.diffLeft}>
+        <span className={styles.diffStripe} style={{ background: DIFFICULTY_COLORS[difficulty] }} />
+        <span className={styles.diffName}>{DIFFICULTY_LABELS[difficulty]}</span>
+      </div>
+      <div className={styles.diffRight}>
+        <div className={styles.diffBest} data-testid={`stat-diff-${difficulty}-best`}>
+          {formatSeconds(bestTimeSeconds)}
+        </div>
+        <div className={styles.diffWins} data-testid={`stat-diff-${difficulty}-wins`}>
+          {wins} побед
+        </div>
+      </div>
+    </div>
+  );
 }
 
 interface MetricRowProps {
@@ -53,32 +86,6 @@ function MetricRow({ label, value, testId }: MetricRowProps) {
       <span className={styles.metricValue} data-testid={testId}>
         {value}
       </span>
-    </div>
-  );
-}
-
-function DifficultyBreakdown({ stats }: { stats: PeriodStats }) {
-  const difficulties: Difficulty[] = ['easy', 'medium', 'hard'];
-  return (
-    <div className={styles.difficultyBlock}>
-      {difficulties.map((difficulty) => {
-        const perDifficulty: DifficultyStats = stats.byDifficulty[difficulty];
-        return (
-          <div key={difficulty}>
-            <h3 className={styles.difficultyTitle}>{DIFFICULTY_LABELS[difficulty]}</h3>
-            <MetricRow
-              label="Завершено"
-              value={String(perDifficulty.completedCount)}
-              testId={`stat-diff-${difficulty}-count`}
-            />
-            <MetricRow
-              label="Лучшее время"
-              value={formatSeconds(perDifficulty.bestTimeSeconds)}
-              testId={`stat-diff-${difficulty}-best`}
-            />
-          </div>
-        );
-      })}
     </div>
   );
 }
@@ -102,21 +109,19 @@ export default function StatsView() {
     };
   }, []);
 
-  const stats = useMemo(() => {
+  const { stats, totalGames } = useMemo(() => {
     const filtered = filterByPeriod(games, period, new Date());
-    return computeStats(filtered);
+    return { stats: computeStats(filtered), totalGames: filtered.length };
   }, [games, period]);
 
   return (
     <div className={styles.screen} data-testid="stats-view">
-      <button
-        type="button"
-        className={styles.periodButton}
-        data-testid="toggle-game"
-        onClick={goBack}
-      >
-        ← Назад
-      </button>
+      <div className={styles.header}>
+        <button type="button" className={styles.back} data-testid="stats-back" onClick={goBack}>
+          ‹
+        </button>
+        <h1 className={styles.title}>Статистика</h1>
+      </div>
 
       <div className={styles.periods}>
         {PERIODS.map((option) => {
@@ -137,7 +142,32 @@ export default function StatsView() {
         })}
       </div>
 
-      {!loaded && <p>Загрузка…</p>}
+      {!loaded && <p className={styles.loading}>Загрузка…</p>}
+
+      <div className={styles.summaryRow}>
+        <SummaryCard
+          label="Любимая сложность"
+          value={formatFavorite(stats.favoriteDifficulty)}
+          testId="stat-favorite-difficulty"
+        />
+        <SummaryCard
+          label="Всего партий"
+          value={String(totalGames)}
+          valueClass={styles.summaryValueBig}
+          testId="stat-total-games"
+        />
+      </div>
+
+      <div className={styles.diffCard}>
+        {DIFFICULTIES.map((difficulty) => (
+          <DifficultyRow
+            key={difficulty}
+            difficulty={difficulty}
+            wins={stats.byDifficulty[difficulty].completedCount}
+            bestTimeSeconds={stats.byDifficulty[difficulty].bestTimeSeconds}
+          />
+        ))}
+      </div>
 
       <div className={styles.metrics}>
         <MetricRow
@@ -160,14 +190,7 @@ export default function StatsView() {
           value={formatSeconds(stats.total.averageTimeSeconds)}
           testId="stat-average-time"
         />
-        <MetricRow
-          label="Любимая сложность"
-          value={formatFavorite(stats.favoriteDifficulty)}
-          testId="stat-favorite-difficulty"
-        />
       </div>
-
-      <DifficultyBreakdown stats={stats} />
     </div>
   );
 }
