@@ -14,7 +14,8 @@ function isRestorableGame(value: unknown): value is GameState {
   if (typeof value !== 'object' || value === null) return false;
   const candidate = value as Partial<GameState>;
   if (candidate.schemaVersion !== GAME_SCHEMA_VERSION) return false;
-  if (candidate.status !== 'in_progress') return false;
+  // Восстанавливаем и незавершённые, и поставленные на паузу партии.
+  if (candidate.status !== 'in_progress' && candidate.status !== 'paused') return false;
   return true;
 }
 

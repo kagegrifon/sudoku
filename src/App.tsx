@@ -1,4 +1,5 @@
 import { AppProvider, useAppView, type Screen } from './state/AppContext';
+import { SettingsProvider } from './state/SettingsContext';
 import { GameProvider } from './state/GameContext';
 import GameScreen from './components/game/GameScreen';
 import StatsView from './components/stats/StatsView';
@@ -49,9 +50,11 @@ function ActiveScreen() {
 export default function App() {
   return (
     <AppProvider>
-      <GameProvider>
-        <ActiveScreen />
-      </GameProvider>
+      <SettingsProvider>
+        <GameProvider>
+          <ActiveScreen />
+        </GameProvider>
+      </SettingsProvider>
     </AppProvider>
   );
 }

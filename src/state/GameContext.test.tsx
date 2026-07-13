@@ -1,13 +1,23 @@
 // @vitest-environment jsdom
-import { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup, waitFor, act } from '@testing-library/react';
 import { GameProvider, useGame, type GameApi } from './GameContext';
+import { SettingsProvider } from './SettingsContext';
 import { GAME_STORAGE_KEY } from './storage/localGame';
 import { GAME_SCHEMA_VERSION } from './gameTypes';
 import * as core from '../core';
 import type { Grid } from '../core';
 import * as historyDb from './storage/historyDb';
+
+/** GameProvider теперь читает настройки из SettingsProvider — оборачиваем в тестах. */
+function Providers({ children }: { children: ReactNode }) {
+  return (
+    <SettingsProvider>
+      <GameProvider>{children}</GameProvider>
+    </SettingsProvider>
+  );
+}
 
 vi.mock('./storage/historyDb', () => ({
   recordCompletedGame: vi.fn().mockResolvedValue(undefined),
@@ -38,7 +48,11 @@ function Probe() {
       <span data-testid="cell00">{game.state.currentGrid[0][0]}</span>
       <span data-testid="notes00">{game.state.notes[0][0].join(',')}</span>
       <span data-testid="notesMode">{String(game.notesMode)}</span>
-      <button data-testid="place" type="button" onClick={() => game.inputDigit({ row: 0, col: 0, value: 7 })}>
+      <button
+        data-testid="place"
+        type="button"
+        onClick={() => game.inputDigit({ row: 0, col: 0, value: 7 })}
+      >
         place
       </button>
       <button data-testid="toggle" type="button" onClick={game.toggleNotesMode}>
@@ -58,18 +72,18 @@ afterEach(cleanup);
 describe('GameContext', () => {
   it('inputDigit в обычном режиме ставит цифру', () => {
     render(
-      <GameProvider>
+      <Providers>
         <Probe />
-      </GameProvider>,
+      </Providers>,
     );
     fireEvent.click(screen.getByTestId('place'));
     expect(screen.getByTestId('cell00').textContent).toBe('7');
   });
   it('inputDigit в режиме заметок ставит кандидата', () => {
     render(
-      <GameProvider>
+      <Providers>
         <Probe />
-      </GameProvider>,
+      </Providers>,
     );
     fireEvent.click(screen.getByTestId('toggle'));
     fireEvent.click(screen.getByTestId('place'));
@@ -97,9 +111,9 @@ describe('GameContext', () => {
     };
     localStorage.setItem(GAME_STORAGE_KEY, JSON.stringify(saved));
     render(
-      <GameProvider>
+      <Providers>
         <Probe />
-      </GameProvider>,
+      </Providers>,
     );
     // Восстановлено значение 4, а не сгенерированная пустая клетка.
     expect(screen.getByTestId('cell00').textContent).toBe('4');
@@ -119,9 +133,9 @@ function ApiProbe({ apiRef }: { apiRef: { current: GameApi | null } }) {
 function renderGameApi(): { current: GameApi | null } {
   const apiRef: { current: GameApi | null } = { current: null };
   render(
-    <GameProvider>
+    <Providers>
       <ApiProbe apiRef={apiRef} />
-    </GameProvider>,
+    </Providers>,
   );
   return apiRef;
 }

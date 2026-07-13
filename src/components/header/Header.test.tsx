@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import Header from './Header';
 import { GameProvider } from '../../state/GameContext';
+import { SettingsProvider } from '../../state/SettingsContext';
 import { AppProvider } from '../../state/AppContext';
 import * as core from '../../core';
 import type { Grid } from '../../core';
@@ -34,9 +35,11 @@ afterEach(cleanup);
 function renderHeader(onNewGame = () => {}) {
   return render(
     <AppProvider>
-      <GameProvider>
-        <Header onNewGame={onNewGame} />
-      </GameProvider>
+      <SettingsProvider>
+        <GameProvider>
+          <Header onNewGame={onNewGame} />
+        </GameProvider>
+      </SettingsProvider>
     </AppProvider>,
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
+import type { Theme } from '../state/gameTypes';
 
-export type Theme = 'system' | 'light' | 'dark';
+export type { Theme };
 
 /**
  * Применяет тему к <html>. Для `system` атрибут data-theme СНИМАЕТСЯ,

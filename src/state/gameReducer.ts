@@ -106,7 +106,7 @@ function autoclearNotes(
 type Handler<A extends GameAction> = (state: GameState, action: A) => GameState;
 
 const placeDigit: Handler<Extract<GameAction, { type: 'PLACE_DIGIT' }>> = (state, action) => {
-  if (state.status === 'completed') return state;
+  if (state.status !== 'in_progress') return state;
   const { row, col, value } = action;
   if (isGiven(state, row, col)) return state;
 
@@ -139,7 +139,7 @@ const placeDigit: Handler<Extract<GameAction, { type: 'PLACE_DIGIT' }>> = (state
 };
 
 const toggleNote: Handler<Extract<GameAction, { type: 'TOGGLE_NOTE' }>> = (state, action) => {
-  if (state.status === 'completed') return state;
+  if (state.status !== 'in_progress') return state;
   const { row, col, value } = action;
   if (isGiven(state, row, col)) return state;
   if (state.currentGrid[row][col] !== EMPTY_CELL) return state;
@@ -168,13 +168,23 @@ const tick: Handler<Extract<GameAction, { type: 'TICK' }>> = (state) => {
   return { ...state, elapsedSeconds: state.elapsedSeconds + 1 };
 };
 
+const pause: Handler<Extract<GameAction, { type: 'PAUSE' }>> = (state) => {
+  if (state.status !== 'in_progress') return state;
+  return { ...state, status: 'paused' };
+};
+
+const resume: Handler<Extract<GameAction, { type: 'RESUME' }>> = (state) => {
+  if (state.status !== 'paused') return state;
+  return { ...state, status: 'in_progress' };
+};
+
 const newGame: Handler<Extract<GameAction, { type: 'NEW_GAME' }>> = (_state, action) =>
   createInitialGameState(action.difficulty);
 
 const restore: Handler<Extract<GameAction, { type: 'RESTORE' }>> = (_state, action) => action.state;
 
 const erase: Handler<Extract<GameAction, { type: 'ERASE' }>> = (state, action) => {
-  if (state.status === 'completed') return state;
+  if (state.status !== 'in_progress') return state;
   const { row, col } = action;
   if (isGiven(state, row, col)) return state;
 
@@ -201,7 +211,7 @@ const erase: Handler<Extract<GameAction, { type: 'ERASE' }>> = (state, action) =
 };
 
 const undo: Handler<Extract<GameAction, { type: 'UNDO' }>> = (state) => {
-  if (state.status === 'completed') return state;
+  if (state.status !== 'in_progress') return state;
   if (state.history.length === 0) return state;
 
   const move = state.history[state.history.length - 1];
@@ -222,6 +232,8 @@ const HANDLERS: {
   ERASE: erase,
   UNDO: undo,
   TICK: tick,
+  PAUSE: pause,
+  RESUME: resume,
   NEW_GAME: newGame,
   RESTORE: restore,
 };

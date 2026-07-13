@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import GameScreen from './GameScreen';
 import { GameProvider } from '../../state/GameContext';
+import { SettingsProvider } from '../../state/SettingsContext';
 import { AppProvider } from '../../state/AppContext';
 import * as core from '../../core';
 import type { Grid } from '../../core';
@@ -37,9 +38,11 @@ function mockPuzzle(puzzle: Grid) {
 function renderScreen() {
   return render(
     <AppProvider>
-      <GameProvider>
-        <GameScreen />
-      </GameProvider>
+      <SettingsProvider>
+        <GameProvider>
+          <GameScreen />
+        </GameProvider>
+      </SettingsProvider>
     </AppProvider>,
   );
 }

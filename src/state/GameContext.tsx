@@ -6,7 +6,6 @@ import {
   useMemo,
   useReducer,
   useRef,
-  useState,
   type Dispatch,
   type ReactNode,
 } from 'react';
@@ -14,8 +13,9 @@ import { findConflicts, EMPTY_CELL, type Difficulty } from '../core';
 import { gameReducer, createInitialGameState } from './gameReducer';
 import type { GameState, GameAction, GameStatus } from './gameTypes';
 import { loadGame, saveGame } from './storage/localGame';
-import { loadSettings, saveSettings } from './storage/localSettings';
+import { loadSettings } from './storage/localSettings';
 import { recordCompletedGame } from './storage/historyDb';
+import { useSettings } from './SettingsContext';
 
 const SAVE_DEBOUNCE_MS = 400;
 const TIMER_SAVE_INTERVAL_MS = 5000;
@@ -44,6 +44,8 @@ export interface GameApi {
   undo(): void;
   newGame(difficulty: Difficulty): void;
   toggleNotesMode(): void;
+  pause(): void;
+  resume(): void;
 }
 
 const GameContext = createContext<GameApi | null>(null);
@@ -126,7 +128,7 @@ function useGameTimer({
 
 export function GameProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(gameReducer, undefined, initGameState);
-  const [settings, setSettings] = useState(loadSettings);
+  const { notesMode, toggleNotesMode, setLastDifficulty } = useSettings();
 
   const conflicts = useMemo(() => findConflicts(state.currentGrid), [state.currentGrid]);
   const mistakes = useMemo(
@@ -137,15 +139,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
     [state.currentGrid, state.solution, state.initialGrid],
   );
 
-  useEffect(() => {
-    saveSettings(settings);
-  }, [settings]);
-
   useGamePersistence(state);
   useGameTimer({ status: state.status, dispatch });
   useRecordCompletion(state);
-
-  const notesMode = settings.notesMode;
 
   const inputDigit = ({ row, col, value }: DigitTarget) => {
     if (notesMode) dispatch({ type: 'TOGGLE_NOTE', row, col, value });
@@ -163,11 +159,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
         outcome: 'abandoned',
       });
     }
-    setSettings((prev) => ({ ...prev, lastDifficulty: difficulty }));
+    setLastDifficulty(difficulty);
     dispatch({ type: 'NEW_GAME', difficulty });
   };
-
-  const toggleNotesMode = () => setSettings((prev) => ({ ...prev, notesMode: !prev.notesMode }));
 
   const api: GameApi = {
     state,
@@ -183,6 +177,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     undo: () => dispatch({ type: 'UNDO' }),
     newGame,
     toggleNotesMode,
+    pause: () => dispatch({ type: 'PAUSE' }),
+    resume: () => dispatch({ type: 'RESUME' }),
   };
 
   return <GameContext.Provider value={api}>{children}</GameContext.Provider>;
