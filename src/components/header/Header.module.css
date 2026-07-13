@@ -1,59 +1,91 @@
 .header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
   width: 100%;
   max-width: min(92vw, 540px);
   margin: 0 auto;
   box-sizing: border-box;
 }
 
-.timer {
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0 12px;
+}
+
+.iconButton {
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  min-width: 32px;
+  min-height: 32px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.statsRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  color: var(--ink-muted);
+  font-size: 13px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.statLabel {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.statValue {
+  font-weight: 600;
+  color: var(--ink);
+  margin-top: 2px;
   font-variant-numeric: tabular-nums;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--cell-text, #1b2430);
-  min-width: 56px;
 }
 
 .lives {
   display: flex;
   gap: 2px;
-  font-size: 20px;
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 1;
 }
 .heartFull {
-  color: var(--heart-full, #e5484d);
+  color: var(--heart-on);
 }
 .heartEmpty {
-  color: var(--heart-empty, #cbd5e1);
+  color: var(--heart-off);
 }
 
-.actions {
+.timeGroup {
   display: flex;
-  gap: 8px;
+  gap: 9px;
+  align-items: flex-end;
 }
 
-.action,
-.actionActive {
-  min-height: 44px;
-  min-width: 44px;
-  padding: 0 12px;
-  font-size: 16px;
-  font-weight: 600;
-  border: 1px solid var(--pad-border, #cbd5e1);
-  border-radius: 10px;
-  background: var(--pad-bg, #f8fafc);
-  color: var(--pad-text, #1b2430);
+.pauseButton {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--divider);
+  color: var(--ink-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  letter-spacing: 1px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
 }
-.actionActive {
-  background: var(--selected-bg, #a9c7f5);
-  border-color: var(--cell-editable, #2563eb);
-}
-.action:disabled {
+.pauseButton:disabled {
   opacity: 0.4;
   cursor: default;
 }

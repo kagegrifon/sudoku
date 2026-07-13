@@ -5,7 +5,7 @@ import Header from './Header';
 import { GameProvider } from '../../state/GameContext';
 import { SettingsProvider } from '../../state/SettingsContext';
 import { RecordsProvider } from '../../state/RecordsContext';
-import { AppProvider } from '../../state/AppContext';
+import { AppProvider, useAppView } from '../../state/AppContext';
 import * as core from '../../core';
 import type { Grid } from '../../core';
 
@@ -32,6 +32,11 @@ function puzzleOneHole(): Grid {
   return puzzle;
 }
 
+function CurrentScreen() {
+  const { screen: current } = useAppView();
+  return <span data-testid="current-screen">{current}</span>;
+}
+
 beforeEach(() => {
   localStorage.clear();
   vi.restoreAllMocks();
@@ -39,13 +44,14 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 
-function renderHeader(onNewGame = () => {}) {
+function renderHeader() {
   return render(
     <AppProvider>
       <SettingsProvider>
         <RecordsProvider>
           <GameProvider>
-            <Header onNewGame={onNewGame} />
+            <CurrentScreen />
+            <Header />
           </GameProvider>
         </RecordsProvider>
       </SettingsProvider>
@@ -58,32 +64,23 @@ describe('Header', () => {
     renderHeader();
     expect(screen.getByTestId('timer').textContent).toBe('00:00');
   });
-  it('показывает индикатор жизней', () => {
+  it('показывает индикатор жизней и уровень', () => {
     renderHeader();
     expect(screen.getByTestId('lives')).toBeTruthy();
+    expect(screen.getByTestId('header').textContent).toContain('Уровень');
   });
-  it('Undo задизейблен на пустой истории', () => {
+  it('кнопка «‹ назад» уводит на home', () => {
     renderHeader();
-    expect(screen.getByTestId('undo').hasAttribute('disabled')).toBe(true);
+    fireEvent.click(screen.getByTestId('game-back'));
+    expect(screen.getByTestId('current-screen').textContent).toBe('home');
   });
-  it('клик по «Новая» вызывает onNewGame', () => {
-    const onNewGame = vi.fn();
-    renderHeader(onNewGame);
-    fireEvent.click(screen.getByTestId('new-game'));
-    expect(onNewGame).toHaveBeenCalledTimes(1);
-  });
-  it('toggle заметок переключает aria-pressed', () => {
+  it('кнопка «⚙» уводит в настройки', () => {
     renderHeader();
-    const toggle = screen.getByTestId('notes-toggle');
-    expect(toggle.getAttribute('aria-pressed')).toBe('false');
-    fireEvent.click(toggle);
-    expect(toggle.getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(screen.getByTestId('game-settings'));
+    expect(screen.getByTestId('current-screen').textContent).toBe('settings');
   });
-  it('кнопка toggle-stats присутствует и обрабатывает клик', () => {
+  it('кнопка паузы присутствует и активна для идущей партии', () => {
     renderHeader();
-    const toggle = screen.getByTestId('toggle-stats');
-    expect(toggle).toBeInTheDocument();
-    fireEvent.click(toggle);
-    // Переход вида проверяется на уровне App (App.test.tsx); здесь — что клик не бросает.
+    expect(screen.getByTestId('pause')).not.toBeDisabled();
   });
 });

@@ -9,7 +9,19 @@
   position: relative;
 }
 
-.boardArea {
+.boardArea,
+.boardAreaBlurred {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.boardAreaBlurred {
+  filter: blur(4px);
+  pointer-events: none;
+}
+
+.actionsArea {
   width: 100%;
   display: flex;
   justify-content: center;
@@ -32,6 +44,8 @@
     gap: 24px;
   }
   .boardArea,
+  .boardAreaBlurred,
+  .actionsArea,
   .padArea {
     width: auto;
   }

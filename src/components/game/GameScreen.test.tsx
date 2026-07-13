@@ -116,9 +116,16 @@ describe('GameScreen', () => {
     expect(screen.queryByTestId('win-screen')).toBeNull();
   });
 
-  it('«Новая» открывает выбор сложности', () => {
+  it('пауза показывает оверлей, «Продолжить» его убирает', () => {
     renderScreen();
-    fireEvent.click(screen.getByTestId('new-game'));
-    expect(screen.getByTestId('difficulty-picker')).toBeTruthy();
+    fireEvent.click(screen.getByTestId('pause'));
+    expect(screen.getByTestId('pause-overlay')).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('pause-resume'));
+    expect(screen.queryByTestId('pause-overlay')).toBeNull();
+  });
+
+  it('счётчик оставшихся цифр по умолчанию скрыт', () => {
+    renderScreen();
+    expect(screen.queryByTestId('digit-5-remaining')).toBeNull();
   });
 });
