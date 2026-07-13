@@ -12,7 +12,7 @@ const HEART_SLOTS = Array.from({ length: INITIAL_LIVES }, (_, index) => index);
 
 export default function Header({ onNewGame }: HeaderProps) {
   const game = useGame();
-  const { setActiveView } = useAppView();
+  const { navigate } = useAppView();
   const filledHearts = game.state.lives;
   const notesToggleClass = game.notesMode ? styles.actionActive : styles.action;
 
@@ -38,7 +38,7 @@ export default function Header({ onNewGame }: HeaderProps) {
           type="button"
           className={styles.action}
           data-testid="toggle-stats"
-          onClick={() => setActiveView('stats')}
+          onClick={() => navigate('stats')}
           aria-label="Статистика"
         >
           📊

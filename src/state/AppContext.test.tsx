@@ -4,12 +4,19 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { AppProvider, useAppView } from './AppContext';
 
 function Probe() {
-  const { activeView, setActiveView } = useAppView();
+  const { screen: current, previous, navigate, goBack } = useAppView();
   return (
     <div>
-      <span data-testid="view">{activeView}</span>
-      <button type="button" data-testid="go-stats" onClick={() => setActiveView('stats')}>
+      <span data-testid="screen">{current}</span>
+      <span data-testid="previous">{previous ?? 'null'}</span>
+      <button type="button" data-testid="go-stats" onClick={() => navigate('stats')}>
         stats
+      </button>
+      <button type="button" data-testid="go-settings" onClick={() => navigate('settings')}>
+        settings
+      </button>
+      <button type="button" data-testid="go-back" onClick={goBack}>
+        back
       </button>
     </div>
   );
@@ -17,24 +24,41 @@ function Probe() {
 
 afterEach(cleanup);
 
+function renderProbe() {
+  render(
+    <AppProvider>
+      <Probe />
+    </AppProvider>,
+  );
+}
+
 describe('AppContext', () => {
-  it('стартовый вид — game', () => {
-    render(
-      <AppProvider>
-        <Probe />
-      </AppProvider>,
-    );
-    expect(screen.getByTestId('view').textContent).toBe('game');
+  it('стартовый экран — home, previous пуст', () => {
+    renderProbe();
+    expect(screen.getByTestId('screen').textContent).toBe('home');
+    expect(screen.getByTestId('previous').textContent).toBe('null');
   });
-  it('setActiveView переключает вид', () => {
-    render(
-      <AppProvider>
-        <Probe />
-      </AppProvider>,
-    );
+
+  it('navigate переходит на экран и запоминает previous', () => {
+    renderProbe();
     fireEvent.click(screen.getByTestId('go-stats'));
-    expect(screen.getByTestId('view').textContent).toBe('stats');
+    expect(screen.getByTestId('screen').textContent).toBe('stats');
+    expect(screen.getByTestId('previous').textContent).toBe('home');
   });
+
+  it('goBack возвращает в previous', () => {
+    renderProbe();
+    fireEvent.click(screen.getByTestId('go-settings'));
+    fireEvent.click(screen.getByTestId('go-back'));
+    expect(screen.getByTestId('screen').textContent).toBe('home');
+  });
+
+  it('goBack без истории уводит в home', () => {
+    renderProbe();
+    fireEvent.click(screen.getByTestId('go-back'));
+    expect(screen.getByTestId('screen').textContent).toBe('home');
+  });
+
   it('useAppView бросает ошибку вне провайдера', () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => render(<Probe />)).toThrow('useAppView должен использоваться внутри AppProvider');

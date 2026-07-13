@@ -10,19 +10,25 @@ vi.mock('./state/storage/historyDb', () => ({
 
 import App from './App';
 
-describe('App — переключение вида', () => {
-  it('по toggle-stats показывает статистику, по toggle-game возвращает игру', async () => {
+describe('App — навигация', () => {
+  it('вход всегда на стартовый экран', () => {
     render(<App />);
-    expect(screen.getByTestId('header')).toBeInTheDocument();
+    expect(screen.getByTestId('home-screen')).toBeInTheDocument();
+  });
 
-    fireEvent.click(screen.getByTestId('toggle-stats'));
-    await waitFor(() => {
-      expect(screen.getByTestId('stats-view')).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByTestId('toggle-game'));
+  it('со старта: Новая игра открывает игровой экран', async () => {
+    render(<App />);
+    fireEvent.click(screen.getByTestId('home-new-game'));
     await waitFor(() => {
       expect(screen.getByTestId('header')).toBeInTheDocument();
+    });
+  });
+
+  it('со старта: Статистика открывает экран статистики', async () => {
+    render(<App />);
+    fireEvent.click(screen.getByTestId('home-stats'));
+    await waitFor(() => {
+      expect(screen.getByTestId('stats-view')).toBeInTheDocument();
     });
   });
 });

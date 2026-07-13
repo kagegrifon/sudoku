@@ -84,7 +84,7 @@ function DifficultyBreakdown({ stats }: { stats: PeriodStats }) {
 }
 
 export default function StatsView() {
-  const { setActiveView } = useAppView();
+  const { goBack } = useAppView();
   const [period, setPeriod] = useState<StatsPeriod>('all');
   const [games, setGames] = useState<CompletedGame[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -113,9 +113,9 @@ export default function StatsView() {
         type="button"
         className={styles.periodButton}
         data-testid="toggle-game"
-        onClick={() => setActiveView('game')}
+        onClick={goBack}
       >
-        ← В игру
+        ← Назад
       </button>
 
       <div className={styles.periods}>
