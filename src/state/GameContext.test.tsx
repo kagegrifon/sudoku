@@ -4,17 +4,20 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup, waitFor, act } from '@testing-library/react';
 import { GameProvider, useGame, type GameApi } from './GameContext';
 import { SettingsProvider } from './SettingsContext';
+import { RecordsProvider } from './RecordsContext';
 import { GAME_STORAGE_KEY } from './storage/localGame';
 import { GAME_SCHEMA_VERSION } from './gameTypes';
 import * as core from '../core';
 import type { Grid } from '../core';
 import * as historyDb from './storage/historyDb';
 
-/** GameProvider теперь читает настройки из SettingsProvider — оборачиваем в тестах. */
+/** GameProvider читает настройки и рекорды из соответствующих провайдеров. */
 function Providers({ children }: { children: ReactNode }) {
   return (
     <SettingsProvider>
-      <GameProvider>{children}</GameProvider>
+      <RecordsProvider>
+        <GameProvider>{children}</GameProvider>
+      </RecordsProvider>
     </SettingsProvider>
   );
 }

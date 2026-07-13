@@ -1,5 +1,6 @@
 import { AppProvider, useAppView, type Screen } from './state/AppContext';
 import { SettingsProvider } from './state/SettingsContext';
+import { RecordsProvider } from './state/RecordsContext';
 import { GameProvider } from './state/GameContext';
 import GameScreen from './components/game/GameScreen';
 import StatsView from './components/stats/StatsView';
@@ -51,9 +52,11 @@ export default function App() {
   return (
     <AppProvider>
       <SettingsProvider>
-        <GameProvider>
-          <ActiveScreen />
-        </GameProvider>
+        <RecordsProvider>
+          <GameProvider>
+            <ActiveScreen />
+          </GameProvider>
+        </RecordsProvider>
       </SettingsProvider>
     </AppProvider>
   );

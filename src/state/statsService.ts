@@ -79,6 +79,20 @@ function pickFavoriteDifficulty(games: CompletedGame[]): Difficulty | null {
   return favorite;
 }
 
+/**
+ * Лучшее время (в секундах) по каждой сложности среди выигранных партий.
+ * null, если по сложности нет побед.
+ */
+export function bestTimesByDifficulty(games: CompletedGame[]): Record<Difficulty, number | null> {
+  const wins = games.filter((game) => game.outcome === 'won');
+  const result = {} as Record<Difficulty, number | null>;
+  for (const difficulty of DIFFICULTY_ORDER) {
+    const winsForDifficulty = wins.filter((game) => game.difficulty === difficulty);
+    result[difficulty] = statsFromWins(winsForDifficulty).bestTimeSeconds;
+  }
+  return result;
+}
+
 export function computeStats(games: CompletedGame[]): PeriodStats {
   const wins = games.filter((game) => game.outcome === 'won');
 

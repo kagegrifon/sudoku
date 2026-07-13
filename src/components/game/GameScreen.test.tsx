@@ -4,9 +4,16 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import GameScreen from './GameScreen';
 import { GameProvider } from '../../state/GameContext';
 import { SettingsProvider } from '../../state/SettingsContext';
+import { RecordsProvider } from '../../state/RecordsContext';
 import { AppProvider } from '../../state/AppContext';
 import * as core from '../../core';
 import type { Grid } from '../../core';
+
+vi.mock('../../state/storage/historyDb', () => ({
+  recordCompletedGame: vi.fn().mockResolvedValue(undefined),
+  getAllCompletedGames: vi.fn().mockResolvedValue([]),
+  clearAllCompletedGames: vi.fn().mockResolvedValue(undefined),
+}));
 
 const solved: Grid = [
   [5, 3, 4, 6, 7, 8, 9, 1, 2],
@@ -39,9 +46,11 @@ function renderScreen() {
   return render(
     <AppProvider>
       <SettingsProvider>
-        <GameProvider>
-          <GameScreen />
-        </GameProvider>
+        <RecordsProvider>
+          <GameProvider>
+            <GameScreen />
+          </GameProvider>
+        </RecordsProvider>
       </SettingsProvider>
     </AppProvider>,
   );
