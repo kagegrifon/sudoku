@@ -32,6 +32,9 @@ export function RecordsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    // refresh асинхронный: setState вызывается после await, не синхронно в теле
+    // эффекта — правило это не распознаёт, поэтому подавляем точечно.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void refresh();
   }, [refresh]);
 

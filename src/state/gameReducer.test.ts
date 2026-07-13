@@ -31,6 +31,15 @@ function mockPuzzle(puzzle: Grid): void {
   vi.spyOn(core, 'generatePuzzle').mockReturnValue({ puzzle, solution: solved });
 }
 
+function firstEmptyCell(grid: Grid): { row: number; col: number } {
+  for (let row = 0; row < 9; row += 1) {
+    for (let col = 0; col < 9; col += 1) {
+      if (grid[row][col] === 0) return { row, col };
+    }
+  }
+  throw new Error('пустых клеток нет');
+}
+
 beforeEach(() => {
   vi.restoreAllMocks();
   mockPuzzle(puzzleWithHoles());
@@ -295,14 +304,7 @@ describe('gameReducer — пауза', () => {
   });
   it('ввод на паузе игнорируется', () => {
     let state = createInitialGameState('easy');
-    // Находим пустую клетку.
-    let row = 0;
-    let col = 0;
-    outer: for (row = 0; row < 9; row += 1) {
-      for (col = 0; col < 9; col += 1) {
-        if (state.initialGrid[row][col] === 0) break outer;
-      }
-    }
+    const { row, col } = firstEmptyCell(state.initialGrid);
     state = gameReducer(state, { type: 'PAUSE' });
     const afterInput = gameReducer(state, { type: 'PLACE_DIGIT', row, col, value: 1 });
     expect(afterInput).toBe(state);

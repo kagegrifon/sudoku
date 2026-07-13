@@ -117,6 +117,9 @@ function useRecordCompletion(state: GameState): boolean {
   }, [records]);
 
   useEffect(() => {
+    // setState здесь — намеренная реакция на переход партии в/из 'completed'
+    // (сброс и вычисление флага рекорда). Правило этого не распознаёт.
+    /* eslint-disable react-hooks/set-state-in-effect */
     const justCompleted = prevStatus.current !== 'completed' && state.status === 'completed';
     prevStatus.current = state.status;
     if (state.status !== 'completed') setIsNewRecord(false);
@@ -139,6 +142,7 @@ function useRecordCompletion(state: GameState): boolean {
       });
       await refresh();
     })();
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [state.status, state.result, state.difficulty, state.elapsedSeconds, refresh]);
 
   return isNewRecord;
