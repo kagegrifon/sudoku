@@ -1,29 +1,35 @@
+/*
+ * Мост старых имён переменных на токены темы (ADR-0006).
+ * Токены объявлены в theme/tokens.css (импортируется первым в main.tsx).
+ * Board.module.css и прочие модули читают эти имена — не трогаем их,
+ * достаточно переопределить значения здесь.
+ */
 :root {
   color-scheme: light dark;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
 
-  --board-border: #344055;
-  --cell-bg: #ffffff;
-  --cell-text: #1b2430;
-  --cell-given: #10151d;
-  --cell-editable: #2563eb;
+  --board-border: var(--board-outer);
+  --cell-bg: var(--cell-surface);
+  --cell-text: var(--ink);
+  --cell-given: var(--ink);
+  --cell-editable: var(--accent);
 
-  --peer-bg: #e8eef7;
-  --samevalue-bg: #cfe0f7;
-  --selected-bg: #a9c7f5;
-  --conflict-text: #d93636;
-  --conflict-bg: #fbdcdc;
+  --peer-bg: var(--cell-peer);
+  --samevalue-bg: var(--cell-same);
+  --selected-bg: var(--cell-sel);
+  --conflict-text: var(--heart-on);
+  --conflict-bg: var(--cell-peer);
 
-  --pad-bg: #f8fafc;
-  --pad-active-bg: #e2e8f0;
-  --pad-border: #cbd5e1;
-  --pad-text: #1b2430;
+  --pad-bg: var(--card);
+  --pad-active-bg: var(--accent-soft);
+  --pad-border: var(--card-border);
+  --pad-text: var(--ink);
 
-  --mistake-bg: #ffd9d9;
-  --mistake-text: #d93636;
-  --note-text: #64748b;
-  --heart-full: #e5484d;
-  --heart-empty: #cbd5e1;
+  --mistake-bg: var(--cell-peer);
+  --mistake-text: var(--heart-on);
+  --note-text: var(--ink-faint);
+  --heart-full: var(--heart-on);
+  --heart-empty: var(--heart-off);
 }
 
 * {
@@ -37,21 +43,6 @@ body {
 }
 
 body {
-  background: #eef2f7;
-  color: var(--cell-text);
-}
-
-@media (prefers-color-scheme: dark) {
-  body {
-    background: #0f141b;
-    color: #e6ebf2;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --mistake-bg: #5b1d1d;
-    --note-text: #94a3b8;
-    --heart-empty: #3a4553;
-  }
+  background: var(--bg);
+  color: var(--ink);
 }

@@ -1,0 +1,102 @@
+/*
+ * Токены темы (ADR-0006). Палитра из design/Sudoku Screens Standalone.dc.html.
+ *
+ * Три режима:
+ *   :root                                              — светлая (по умолчанию);
+ *   [data-theme="dark"]                                — явная тёмная;
+ *   @media (prefers-color-scheme: dark) :root:not(...) — системная тёмная.
+ *
+ * Режим `system` = атрибут data-theme снят с <html>, тогда работает media-query.
+ * См. src/theme/useApplyTheme.ts.
+ */
+
+:root {
+  /* Поверхности и текст */
+  --bg: #eef1f7;
+  --card: #ffffff;
+  --card-border: transparent;
+  --accent: #2f6fed;
+  --accent-soft: #eef3fd;
+  --ink: #1f2633;
+  --ink-muted: #5b6472;
+  --ink-subtle: #8a93a4;
+  --ink-faint: #9aa3b2;
+  --divider: #eef1f5;
+
+  /* Клетки доски */
+  --board-outer: #3b4250;
+  --board-grid-thin: #d7deec;
+  --cell-surface: #ffffff;
+  --cell-sel: #a9caf6;
+  --cell-same: #cadff9;
+  --cell-peer: #e9f0fc;
+
+  /* Жизни */
+  --heart-on: #e0433a;
+  --heart-off: #ccd2dd;
+
+  /* Риски сложностей */
+  --diff-easy: #37b26b;
+  --diff-medium: #e8a23a;
+  --diff-hard: #e05a5a;
+
+  /* Тени */
+  --shadow-card: 0 2px 8px -4px rgba(20, 30, 60, 0.12);
+  --shadow-btn: 0 8px 18px -6px rgba(47, 111, 237, 0.5);
+}
+
+/* --- Явная тёмная тема --- */
+[data-theme='dark'] {
+  --bg: #0e1320;
+  --card: #171d2b;
+  --card-border: #232b3c;
+  --accent: #4d86f7;
+  --accent-soft: #1d2740;
+  --ink: #eef1f8;
+  --ink-muted: #9aa3b7;
+  --ink-subtle: #8b93a5;
+  --ink-faint: #6b7688;
+  --divider: #232b3c;
+
+  --board-outer: #46516a;
+  --board-grid-thin: #262f42;
+  --cell-surface: #141a27;
+  --cell-sel: #2c4a78;
+  --cell-same: #223a5f;
+  --cell-peer: #1a2233;
+
+  --heart-on: #ff6a60;
+  --heart-off: #3d465c;
+
+  --shadow-card: 0 2px 8px -4px rgba(0, 0, 0, 0.5);
+  --shadow-btn: 0 8px 18px -6px rgba(77, 134, 247, 0.5);
+}
+
+/* --- Системная тёмная (только когда data-theme не задан) --- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg: #0e1320;
+    --card: #171d2b;
+    --card-border: #232b3c;
+    --accent: #4d86f7;
+    --accent-soft: #1d2740;
+    --ink: #eef1f8;
+    --ink-muted: #9aa3b7;
+    --ink-subtle: #8b93a5;
+    --ink-faint: #6b7688;
+    --divider: #232b3c;
+
+    --board-outer: #46516a;
+    --board-grid-thin: #262f42;
+    --cell-surface: #141a27;
+    --cell-sel: #2c4a78;
+    --cell-same: #223a5f;
+    --cell-peer: #1a2233;
+
+    --heart-on: #ff6a60;
+    --heart-off: #3d465c;
+
+    --shadow-card: 0 2px 8px -4px rgba(0, 0, 0, 0.5);
+    --shadow-btn: 0 8px 18px -6px rgba(77, 134, 247, 0.5);
+  }
+}
