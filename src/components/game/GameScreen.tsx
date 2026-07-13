@@ -92,7 +92,11 @@ export default function GameScreen() {
         <WinScreen
           result={winResult}
           elapsedSeconds={game.state.elapsedSeconds}
+          difficulty={game.state.difficulty}
+          livesLeft={game.state.lives}
+          isNewRecord={game.isNewRecord}
           onNewGame={restartGame}
+          onHome={() => navigate('home')}
         />
       )}
     </div>

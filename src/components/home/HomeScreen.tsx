@@ -118,7 +118,7 @@ export default function HomeScreen() {
         </button>
       </div>
 
-      {pickerOpen && <DifficultyPicker onPick={startGame} onCancel={() => setPickerOpen(false)} />}
+      {pickerOpen && <DifficultyPicker onStart={startGame} onClose={() => setPickerOpen(false)} />}
     </div>
   );
 }

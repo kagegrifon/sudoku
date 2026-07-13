@@ -20,8 +20,9 @@ describe('App — навигация', () => {
   it('со старта: Новая игра → выбор сложности → игровой экран', async () => {
     render(<App />);
     fireEvent.click(screen.getByTestId('home-new-game'));
-    // Открывается выбор сложности; выбираем — попадаем в игру.
+    // Открывается выбор сложности; выбираем и жмём «Начать» — попадаем в игру.
     fireEvent.click(screen.getByTestId('difficulty-easy'));
+    fireEvent.click(screen.getByTestId('difficulty-start'));
     await waitFor(() => {
       expect(screen.getByTestId('header')).toBeInTheDocument();
     });

@@ -67,6 +67,7 @@ describe('HomeScreen', () => {
     fireEvent.click(screen.getByTestId('home-new-game'));
     expect(screen.getByTestId('difficulty-picker')).toBeInTheDocument();
     fireEvent.click(screen.getByTestId('difficulty-medium'));
+    fireEvent.click(screen.getByTestId('difficulty-start'));
     await waitFor(() => {
       expect(screen.getByTestId('current-screen').textContent).toBe('game');
     });
