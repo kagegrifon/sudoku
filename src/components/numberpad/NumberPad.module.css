@@ -12,6 +12,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 1px;
   min-height: 48px;
   padding: 4px 0;
@@ -20,6 +21,22 @@
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+}
+
+/* Landscape / планшет: нампад — сетка 3×3 рядом с полем. */
+@media (orientation: landscape) {
+  .pad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    max-width: 300px;
+  }
+  .key {
+    min-height: 60px;
+    border-radius: 14px;
+    background: var(--card);
+    box-shadow: var(--shadow-card);
+  }
 }
 
 .digit {

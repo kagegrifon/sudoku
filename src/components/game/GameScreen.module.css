@@ -6,6 +6,8 @@
   padding: 16px;
   box-sizing: border-box;
   min-height: 100svh;
+  max-width: 480px;
+  margin: 0 auto;
   position: relative;
 }
 
@@ -21,6 +23,14 @@
   pointer-events: none;
 }
 
+.controls {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
 .actionsArea {
   width: 100%;
   display: flex;
@@ -30,23 +40,40 @@
 .padArea {
   width: 100%;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
+  justify-content: center;
 }
 
-/* Landscape / планшет: поле и панель бок о бок; хедер сверху на всю ширину. */
+/* Планшет-portrait: крупнее, шире контейнер, центрирование. */
+@media (min-width: 700px) and (orientation: portrait) {
+  .screen {
+    max-width: 620px;
+    gap: 24px;
+    padding: 32px;
+  }
+}
+
+/*
+ * Landscape: поле слева (квадрат), справа колонка управления
+ * (ActionsBar над NumberPad). Хедер сверху на всю ширину.
+ */
 @media (orientation: landscape) {
   .screen {
     flex-flow: row wrap;
     align-items: center;
     justify-content: center;
     gap: 24px;
+    max-width: 1000px;
+  }
+  .screen > :global(header) {
+    flex-basis: 100%;
   }
   .boardArea,
-  .boardAreaBlurred,
-  .actionsArea,
-  .padArea {
+  .boardAreaBlurred {
     width: auto;
+    flex: 0 1 auto;
+  }
+  .controls {
+    width: auto;
+    flex: 0 1 300px;
   }
 }

@@ -58,24 +58,26 @@ export default function GameScreen() {
         />
       </div>
 
-      <div className={styles.actionsArea}>
-        <ActionsBar
-          canUndo={game.canUndo}
-          notesMode={game.notesMode}
-          disabled={padDisabled}
-          onUndo={game.undo}
-          onErase={eraseSelected}
-          onToggleNotes={game.toggleNotesMode}
-        />
-      </div>
+      <div className={styles.controls}>
+        <div className={styles.actionsArea}>
+          <ActionsBar
+            canUndo={game.canUndo}
+            notesMode={game.notesMode}
+            disabled={padDisabled}
+            onUndo={game.undo}
+            onErase={eraseSelected}
+            onToggleNotes={game.toggleNotesMode}
+          />
+        </div>
 
-      <div className={styles.padArea}>
-        <NumberPad
-          onDigit={inputDigit}
-          disabled={padDisabled}
-          showRemaining={settings.showRemainingCounts}
-          remainingByDigit={game.remainingByDigit}
-        />
+        <div className={styles.padArea}>
+          <NumberPad
+            onDigit={inputDigit}
+            disabled={padDisabled}
+            showRemaining={settings.showRemainingCounts}
+            remainingByDigit={game.remainingByDigit}
+          />
+        </div>
       </div>
 
       {paused && (
