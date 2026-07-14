@@ -8,7 +8,7 @@ import DifficultyPicker from '../difficulty/DifficultyPicker';
 import styles from './HomeScreen.module.css';
 
 // Файл из public/ — ссылаемся абсолютным путём (Vite не импортирует public как модуль).
-const ICON_URL = '/icons/icon-512.png';
+const ICON_URL = '/icons/icon-rounded-512.png';
 
 const TOTAL_CELLS = GRID_SIZE * GRID_SIZE;
 
