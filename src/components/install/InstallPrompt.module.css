@@ -1,0 +1,46 @@
+.prompt {
+  position: fixed;
+  left: 50%;
+  top: 16px;
+  transform: translateX(-50%);
+  z-index: 100;
+  width: calc(100% - 32px);
+  max-width: 388px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-card);
+  box-sizing: border-box;
+}
+
+.text {
+  flex: 1;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.accept {
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.dismiss {
+  border: 0;
+  background: none;
+  color: var(--ink-faint);
+  font-size: 15px;
+  line-height: 1;
+  padding: 4px;
+  cursor: pointer;
+}
