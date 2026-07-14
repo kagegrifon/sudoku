@@ -28,6 +28,10 @@ interface ComputeHighlightArgs {
   grid: Grid;
   conflicts: boolean[][];
   mistakes?: boolean[][];
+  /** Подсвечивать клетки с тем же значением, что и выбранная (по умолчанию да). */
+  highlightSameDigits?: boolean;
+  /** Подсвечивать строку/столбец/блок выбранной клетки (по умолчанию да). */
+  highlightPeers?: boolean;
 }
 
 export function computeHighlight({
@@ -36,6 +40,8 @@ export function computeHighlight({
   grid,
   conflicts,
   mistakes,
+  highlightSameDigits = true,
+  highlightPeers = true,
 }: ComputeHighlightArgs): CellHighlight {
   const conflict = conflicts[pos.row][pos.col];
   const mistake = mistakes?.[pos.row]?.[pos.col] ?? false;
@@ -49,10 +55,10 @@ export function computeHighlight({
     return { selected: true, peer: false, sameValue: false, conflict, mistake };
   }
 
-  const peer = isSameUnit(pos, selected);
+  const peer = highlightPeers && isSameUnit(pos, selected);
   const cellValue = grid[pos.row][pos.col];
   const selectedValue = grid[selected.row][selected.col];
-  const sameValue = cellValue !== EMPTY_CELL && cellValue === selectedValue;
+  const sameValue = highlightSameDigits && cellValue !== EMPTY_CELL && cellValue === selectedValue;
 
   return { selected: false, peer, sameValue, conflict, mistake };
 }

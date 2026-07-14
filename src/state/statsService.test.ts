@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { CompletedGame } from './storage/historyDb';
-import { filterByPeriod, computeStats, type StatsPeriod } from './statsService';
+import {
+  filterByPeriod,
+  computeStats,
+  bestTimesByDifficulty,
+  type StatsPeriod,
+} from './statsService';
 
 // Фиксированный «сейчас» — детерминизм. Пятница.
 const NOW = new Date('2026-07-03T12:00:00.000Z');
@@ -137,4 +142,24 @@ describe('computeStats — favoriteDifficulty', () => {
 it('StatsPeriod включает day/week/month/all', () => {
   const periods: StatsPeriod[] = ['day', 'week', 'month', 'all'];
   expect(periods).toHaveLength(4);
+});
+
+describe('bestTimesByDifficulty', () => {
+  it('берёт минимум по won для каждой сложности, null при отсутствии побед', () => {
+    const games = [
+      game({ difficulty: 'easy', outcome: 'won', durationSeconds: 200 }),
+      game({ difficulty: 'easy', outcome: 'won', durationSeconds: 150 }),
+      game({ difficulty: 'easy', outcome: 'lost', durationSeconds: 10 }),
+      game({ difficulty: 'medium', outcome: 'won', durationSeconds: 300 }),
+      game({ difficulty: 'hard', outcome: 'abandoned', durationSeconds: 5 }),
+    ];
+    const best = bestTimesByDifficulty(games);
+    expect(best.easy).toBe(150); // lost не учитывается
+    expect(best.medium).toBe(300);
+    expect(best.hard).toBeNull(); // только abandoned — побед нет
+  });
+
+  it('пустой журнал — все null', () => {
+    expect(bestTimesByDifficulty([])).toEqual({ easy: null, medium: null, hard: null });
+  });
 });

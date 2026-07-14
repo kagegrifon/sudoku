@@ -1,0 +1,135 @@
+.screen {
+  min-height: 100vh;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 54px 24px 30px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  box-shadow: 0 10px 24px -8px rgba(36, 84, 214, 0.5);
+}
+
+.title {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.continueCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  padding: 18px 20px;
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.continueTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.continueLabel {
+  font-size: 12px;
+  color: var(--ink-subtle);
+  font-weight: 500;
+}
+
+.continueSummary {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-top: 2px;
+}
+
+.continueIcon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex: none;
+}
+
+.progressTrack {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--divider);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+}
+
+.continueFilled {
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+.newGameButton {
+  margin-top: 14px;
+  border: 0;
+  background: var(--accent);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+  padding: 17px;
+  border-radius: 16px;
+  box-shadow: var(--shadow-btn);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.secondaryRow {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.secondaryButton {
+  flex: 1;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 16px 0;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-muted);
+  box-shadow: var(--shadow-card);
+  font-family: inherit;
+  cursor: pointer;
+}

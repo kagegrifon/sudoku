@@ -108,4 +108,30 @@ describe('computeHighlight', () => {
     });
     expect(highlight.sameValue).toBe(false);
   });
+
+  it('highlightPeers=false обнуляет подсветку соседей', () => {
+    const grid = emptyGrid();
+    const highlight = computeHighlight({
+      pos: { row: 0, col: 5 }, // одна строка с (0,0)
+      selected: { row: 0, col: 0 },
+      grid,
+      conflicts: noConflicts(),
+      highlightPeers: false,
+    });
+    expect(highlight.peer).toBe(false);
+  });
+
+  it('highlightSameDigits=false обнуляет подсветку одинаковых цифр', () => {
+    const grid = emptyGrid();
+    grid[0][0] = 5;
+    grid[8][8] = 5;
+    const highlight = computeHighlight({
+      pos: { row: 8, col: 8 },
+      selected: { row: 0, col: 0 },
+      grid,
+      conflicts: noConflicts(),
+      highlightSameDigits: false,
+    });
+    expect(highlight.sameValue).toBe(false);
+  });
 });

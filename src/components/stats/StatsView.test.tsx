@@ -2,7 +2,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import type { CompletedGame } from '../../state/storage/historyDb';
-import { AppProvider } from '../../state/AppContext';
+import { AppProvider, useAppView } from '../../state/AppContext';
 import StatsView from './StatsView';
 
 vi.mock('../../state/storage/historyDb', () => ({
@@ -20,9 +20,15 @@ const SAMPLE: CompletedGame[] = [
   { id: '3', difficulty: 'hard', durationSeconds: 50, completedAt: iso(20), outcome: 'lost' },
 ];
 
+function CurrentScreen() {
+  const { screen: current } = useAppView();
+  return <span data-testid="current-screen">{current}</span>;
+}
+
 function renderStats() {
   return render(
     <AppProvider>
+      <CurrentScreen />
       <StatsView />
     </AppProvider>,
   );
@@ -63,5 +69,24 @@ describe('StatsView', () => {
       expect(screen.getByTestId('stat-completed-count')).toHaveTextContent('0');
     });
     expect(screen.getByTestId('stat-best-time')).toHaveTextContent('—');
+    expect(screen.getByTestId('stat-favorite-difficulty')).toHaveTextContent('—');
+  });
+
+  it('карточки дизайна: всего партий за период и победы по сложности', async () => {
+    renderStats();
+    fireEvent.click(await screen.findByTestId('period-all'));
+    await waitFor(() => {
+      // Всего партий за «Всё» = 3 (2 won easy + 1 lost hard).
+      expect(screen.getByTestId('stat-total-games')).toHaveTextContent('3');
+    });
+    expect(screen.getByTestId('stat-diff-easy-wins')).toHaveTextContent('2 побед');
+    expect(screen.getByTestId('stat-diff-hard-wins')).toHaveTextContent('0 побед');
+  });
+
+  it('«‹ назад» уводит с экрана статистики', async () => {
+    renderStats();
+    // Начальный экран AppProvider — home; StatsView отрендерен принудительно.
+    fireEvent.click(await screen.findByTestId('stats-back'));
+    expect(screen.getByTestId('current-screen').textContent).toBe('home');
   });
 });

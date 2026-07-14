@@ -3,9 +3,17 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import GameScreen from './GameScreen';
 import { GameProvider } from '../../state/GameContext';
+import { SettingsProvider } from '../../state/SettingsContext';
+import { RecordsProvider } from '../../state/RecordsContext';
 import { AppProvider } from '../../state/AppContext';
 import * as core from '../../core';
 import type { Grid } from '../../core';
+
+vi.mock('../../state/storage/historyDb', () => ({
+  recordCompletedGame: vi.fn().mockResolvedValue(undefined),
+  getAllCompletedGames: vi.fn().mockResolvedValue([]),
+  clearAllCompletedGames: vi.fn().mockResolvedValue(undefined),
+}));
 
 const solved: Grid = [
   [5, 3, 4, 6, 7, 8, 9, 1, 2],
@@ -37,9 +45,13 @@ function mockPuzzle(puzzle: Grid) {
 function renderScreen() {
   return render(
     <AppProvider>
-      <GameProvider>
-        <GameScreen />
-      </GameProvider>
+      <SettingsProvider>
+        <RecordsProvider>
+          <GameProvider>
+            <GameScreen />
+          </GameProvider>
+        </RecordsProvider>
+      </SettingsProvider>
     </AppProvider>,
   );
 }
@@ -104,9 +116,16 @@ describe('GameScreen', () => {
     expect(screen.queryByTestId('win-screen')).toBeNull();
   });
 
-  it('«Новая» открывает выбор сложности', () => {
+  it('пауза показывает оверлей, «Продолжить» его убирает', () => {
     renderScreen();
-    fireEvent.click(screen.getByTestId('new-game'));
-    expect(screen.getByTestId('difficulty-picker')).toBeTruthy();
+    fireEvent.click(screen.getByTestId('pause'));
+    expect(screen.getByTestId('pause-overlay')).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('pause-resume'));
+    expect(screen.queryByTestId('pause-overlay')).toBeNull();
+  });
+
+  it('счётчик оставшихся цифр по умолчанию скрыт', () => {
+    renderScreen();
+    expect(screen.queryByTestId('digit-5-remaining')).toBeNull();
   });
 });

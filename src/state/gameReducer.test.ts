@@ -31,6 +31,15 @@ function mockPuzzle(puzzle: Grid): void {
   vi.spyOn(core, 'generatePuzzle').mockReturnValue({ puzzle, solution: solved });
 }
 
+function firstEmptyCell(grid: Grid): { row: number; col: number } {
+  for (let row = 0; row < 9; row += 1) {
+    for (let col = 0; col < 9; col += 1) {
+      if (grid[row][col] === 0) return { row, col };
+    }
+  }
+  throw new Error('пустых клеток нет');
+}
+
 beforeEach(() => {
   vi.restoreAllMocks();
   mockPuzzle(puzzleWithHoles());
@@ -77,7 +86,11 @@ describe('TICK', () => {
     expect(next.elapsedSeconds).toBe(1);
   });
   it('не тикает в completed', () => {
-    const state: GameState = { ...createInitialGameState('easy'), status: 'completed', result: 'won' };
+    const state: GameState = {
+      ...createInitialGameState('easy'),
+      status: 'completed',
+      result: 'won',
+    };
     const next = gameReducer(state, { type: 'TICK' });
     expect(next.elapsedSeconds).toBe(0);
   });
@@ -137,11 +150,13 @@ describe('PLACE_DIGIT', () => {
     expect(move.clearedNotes).toEqual([{ row: 0, col: 0, prevNotes: [3] }]);
   });
   it('верная последняя цифра завершает партию победой', () => {
-    mockPuzzle((() => {
-      const puzzle = solved.map((row) => [...row]);
-      puzzle[0][0] = 0; // единственная пустая
-      return puzzle;
-    })());
+    mockPuzzle(
+      (() => {
+        const puzzle = solved.map((row) => [...row]);
+        puzzle[0][0] = 0; // единственная пустая
+        return puzzle;
+      })(),
+    );
     const state = createInitialGameState('easy');
     const next = gameReducer(state, { type: 'PLACE_DIGIT', row: 0, col: 0, value: 5 });
     expect(next.status).toBe('completed');
@@ -157,7 +172,11 @@ describe('PLACE_DIGIT', () => {
     expect(c.result).toBe('lost');
   });
   it('после completed новые ходы игнорируются', () => {
-    const state: GameState = { ...createInitialGameState('easy'), status: 'completed', result: 'lost' };
+    const state: GameState = {
+      ...createInitialGameState('easy'),
+      status: 'completed',
+      result: 'lost',
+    };
     const next = gameReducer(state, { type: 'PLACE_DIGIT', row: 0, col: 0, value: 5 });
     expect(next).toBe(state);
   });
@@ -260,5 +279,41 @@ describe('UNDO', () => {
   it('пустая история — no-op', () => {
     const state = createInitialGameState('easy');
     expect(gameReducer(state, { type: 'UNDO' })).toBe(state);
+  });
+});
+
+describe('gameReducer — пауза', () => {
+  it('PAUSE переводит in_progress → paused', () => {
+    const state = createInitialGameState('easy');
+    const paused = gameReducer(state, { type: 'PAUSE' });
+    expect(paused.status).toBe('paused');
+  });
+  it('RESUME возвращает paused → in_progress', () => {
+    let state = createInitialGameState('easy');
+    state = gameReducer(state, { type: 'PAUSE' });
+    const resumed = gameReducer(state, { type: 'RESUME' });
+    expect(resumed.status).toBe('in_progress');
+  });
+  it('PAUSE на завершённой партии — no-op', () => {
+    const state: GameState = {
+      ...createInitialGameState('easy'),
+      status: 'completed',
+      result: 'won',
+    };
+    expect(gameReducer(state, { type: 'PAUSE' })).toBe(state);
+  });
+  it('ввод на паузе игнорируется', () => {
+    let state = createInitialGameState('easy');
+    const { row, col } = firstEmptyCell(state.initialGrid);
+    state = gameReducer(state, { type: 'PAUSE' });
+    const afterInput = gameReducer(state, { type: 'PLACE_DIGIT', row, col, value: 1 });
+    expect(afterInput).toBe(state);
+    expect(afterInput.currentGrid[row][col]).toBe(0);
+  });
+  it('TICK на паузе не увеличивает время', () => {
+    let state = createInitialGameState('easy');
+    state = gameReducer(state, { type: 'PAUSE' });
+    const ticked = gameReducer(state, { type: 'TICK' });
+    expect(ticked.elapsedSeconds).toBe(0);
   });
 });

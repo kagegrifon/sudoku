@@ -14,8 +14,11 @@ import { findConflicts, EMPTY_CELL, type Difficulty } from '../core';
 import { gameReducer, createInitialGameState } from './gameReducer';
 import type { GameState, GameAction, GameStatus } from './gameTypes';
 import { loadGame, saveGame } from './storage/localGame';
-import { loadSettings, saveSettings } from './storage/localSettings';
+import { loadSettings } from './storage/localSettings';
 import { recordCompletedGame } from './storage/historyDb';
+import { countRemainingDigits, type RemainingDigit } from './remainingDigits';
+import { useSettings } from './SettingsContext';
+import { useRecords } from './RecordsContext';
 
 const SAVE_DEBOUNCE_MS = 400;
 const TIMER_SAVE_INTERVAL_MS = 5000;
@@ -36,14 +39,18 @@ export interface GameApi {
   mistakes: boolean[][];
   won: boolean;
   lost: boolean;
+  isNewRecord: boolean;
   canUndo: boolean;
   notesMode: boolean;
+  remainingByDigit: Record<number, RemainingDigit>;
   cellIsGiven(row: number, col: number): boolean;
   inputDigit(target: DigitTarget): void;
   erase(target: CellTarget): void;
   undo(): void;
   newGame(difficulty: Difficulty): void;
   toggleNotesMode(): void;
+  pause(): void;
+  resume(): void;
 }
 
 const GameContext = createContext<GameApi | null>(null);
@@ -92,20 +99,53 @@ function useGamePersistence(state: GameState): void {
   }, []);
 }
 
-/** Пишет CompletedGame один раз при переходе партии в 'completed'. */
-function useRecordCompletion(state: GameState): void {
+/**
+ * Пишет CompletedGame один раз при переходе партии в 'completed' и определяет,
+ * побит ли рекорд. `prevBest` читается ДО записи/refresh — иначе свежий результат
+ * сам бы стал «предыдущим» рекордом. Возвращает флаг isNewRecord.
+ */
+function useRecordCompletion(state: GameState): boolean {
+  const { records, refresh } = useRecords();
+  const [isNewRecord, setIsNewRecord] = useState(false);
   const prevStatus = useRef(state.status);
+
+  // Держим свежие records в ref, чтобы эффект завершения не зависел от них
+  // (иначе он бы перезапускался на каждый refresh).
+  const recordsRef = useRef(records);
   useEffect(() => {
+    recordsRef.current = records;
+  }, [records]);
+
+  useEffect(() => {
+    // setState здесь — намеренная реакция на переход партии в/из 'completed'
+    // (сброс и вычисление флага рекорда). Правило этого не распознаёт.
+    /* eslint-disable react-hooks/set-state-in-effect */
     const justCompleted = prevStatus.current !== 'completed' && state.status === 'completed';
     prevStatus.current = state.status;
-    if (!justCompleted || state.result === undefined) return;
-    recordCompletedGame({
-      difficulty: state.difficulty,
-      durationSeconds: state.elapsedSeconds,
-      completedAt: new Date().toISOString(),
-      outcome: state.result,
-    });
-  }, [state.status, state.result, state.difficulty, state.elapsedSeconds]);
+    if (state.status !== 'completed') setIsNewRecord(false);
+    const result = state.result;
+    if (!justCompleted || result === undefined) return;
+
+    if (result === 'won') {
+      const prevBest = recordsRef.current[state.difficulty];
+      setIsNewRecord(prevBest === null || state.elapsedSeconds < prevBest);
+    } else {
+      setIsNewRecord(false);
+    }
+
+    void (async () => {
+      await recordCompletedGame({
+        difficulty: state.difficulty,
+        durationSeconds: state.elapsedSeconds,
+        completedAt: new Date().toISOString(),
+        outcome: result,
+      });
+      await refresh();
+    })();
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [state.status, state.result, state.difficulty, state.elapsedSeconds, refresh]);
+
+  return isNewRecord;
 }
 
 function useGameTimer({
@@ -126,7 +166,7 @@ function useGameTimer({
 
 export function GameProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(gameReducer, undefined, initGameState);
-  const [settings, setSettings] = useState(loadSettings);
+  const { notesMode, toggleNotesMode, setLastDifficulty } = useSettings();
 
   const conflicts = useMemo(() => findConflicts(state.currentGrid), [state.currentGrid]);
   const mistakes = useMemo(
@@ -137,15 +177,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
     [state.currentGrid, state.solution, state.initialGrid],
   );
 
-  useEffect(() => {
-    saveSettings(settings);
-  }, [settings]);
+  const remainingByDigit = useMemo(
+    () => countRemainingDigits({ currentGrid: state.currentGrid, solution: state.solution }),
+    [state.currentGrid, state.solution],
+  );
 
   useGamePersistence(state);
   useGameTimer({ status: state.status, dispatch });
-  useRecordCompletion(state);
-
-  const notesMode = settings.notesMode;
+  const isNewRecord = useRecordCompletion(state);
 
   const inputDigit = ({ row, col, value }: DigitTarget) => {
     if (notesMode) dispatch({ type: 'TOGGLE_NOTE', row, col, value });
@@ -163,11 +202,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
         outcome: 'abandoned',
       });
     }
-    setSettings((prev) => ({ ...prev, lastDifficulty: difficulty }));
+    setLastDifficulty(difficulty);
     dispatch({ type: 'NEW_GAME', difficulty });
   };
-
-  const toggleNotesMode = () => setSettings((prev) => ({ ...prev, notesMode: !prev.notesMode }));
 
   const api: GameApi = {
     state,
@@ -175,14 +212,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
     mistakes,
     won: state.status === 'completed' && state.result === 'won',
     lost: state.status === 'completed' && state.result === 'lost',
+    isNewRecord,
     canUndo: state.history.length > 0 && state.status === 'in_progress',
     notesMode,
+    remainingByDigit,
     cellIsGiven: (row, col) => state.initialGrid[row][col] !== EMPTY_CELL,
     inputDigit,
     erase: ({ row, col }) => dispatch({ type: 'ERASE', row, col }),
     undo: () => dispatch({ type: 'UNDO' }),
     newGame,
     toggleNotesMode,
+    pause: () => dispatch({ type: 'PAUSE' }),
+    resume: () => dispatch({ type: 'RESUME' }),
   };
 
   return <GameContext.Provider value={api}>{children}</GameContext.Provider>;

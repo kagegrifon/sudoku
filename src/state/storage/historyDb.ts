@@ -59,3 +59,13 @@ export async function getAllCompletedGames(): Promise<CompletedGame[]> {
     return [];
   }
 }
+
+/** Полностью очищает журнал завершённых партий (сброс статистики). */
+export async function clearAllCompletedGames(): Promise<void> {
+  try {
+    const db = await getDb();
+    await db.clear(STORE_NAME);
+  } catch {
+    // Журнал недоступен — очищать нечего.
+  }
+}

@@ -1,8 +1,10 @@
 import type { Difficulty, Grid } from '../core';
 
 export const GAME_SCHEMA_VERSION = 1;
-export const SETTINGS_SCHEMA_VERSION = 1;
+export const SETTINGS_SCHEMA_VERSION = 2;
 export const INITIAL_LIVES = 3;
+
+export type Theme = 'system' | 'light' | 'dark';
 
 export interface CellNotesSnapshot {
   row: number;
@@ -20,7 +22,7 @@ export interface Move {
   clearedNotes: CellNotesSnapshot[];
 }
 
-export type GameStatus = 'in_progress' | 'completed';
+export type GameStatus = 'in_progress' | 'paused' | 'completed';
 export type GameResult = 'won' | 'lost';
 
 export interface GameState {
@@ -45,6 +47,8 @@ export type GameAction =
   | { type: 'ERASE'; row: number; col: number }
   | { type: 'UNDO' }
   | { type: 'TICK' }
+  | { type: 'PAUSE' }
+  | { type: 'RESUME' }
   | { type: 'NEW_GAME'; difficulty: Difficulty }
   | { type: 'RESTORE'; state: GameState };
 
@@ -53,4 +57,8 @@ export interface Settings {
   notesMode: boolean;
   lastDifficulty: Difficulty;
   iosInstallPromptDismissed: boolean;
+  theme: Theme;
+  highlightSameDigits: boolean;
+  highlightPeers: boolean;
+  showRemainingCounts: boolean;
 }

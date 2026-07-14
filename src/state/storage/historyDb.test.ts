@@ -2,7 +2,7 @@
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { IDBFactory } from 'fake-indexeddb';
-import { recordCompletedGame, getAllCompletedGames } from './historyDb';
+import { recordCompletedGame, getAllCompletedGames, clearAllCompletedGames } from './historyDb';
 
 // Каждый тест — чистая БД: сбрасываем глобальный indexedDB.
 beforeEach(() => {
@@ -54,5 +54,17 @@ describe('historyDb', () => {
       '2026-07-03T09:00:00.000Z',
       '2026-07-03T12:00:00.000Z',
     ]);
+  });
+
+  it('clearAllCompletedGames очищает журнал', async () => {
+    await recordCompletedGame({
+      difficulty: 'easy',
+      durationSeconds: 120,
+      completedAt: '2026-07-03T10:00:00.000Z',
+      outcome: 'won',
+    });
+    expect(await getAllCompletedGames()).toHaveLength(1);
+    await clearAllCompletedGames();
+    expect(await getAllCompletedGames()).toEqual([]);
   });
 });
