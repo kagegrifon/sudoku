@@ -7,8 +7,9 @@ import { DIFFICULTY_LABELS } from '../difficultyLabels';
 import DifficultyPicker from '../difficulty/DifficultyPicker';
 import styles from './HomeScreen.module.css';
 
-// Файл из public/ — ссылаемся абсолютным путём (Vite не импортирует public как модуль).
-const ICON_URL = '/icons/icon-rounded-512.png';
+// Файл из public/ — Vite не импортирует его как модуль, поэтому путь собираем
+// вручную от BASE_URL (на GitHub Pages приложение живёт в подкаталоге /sudoku/).
+const ICON_URL = `${import.meta.env.BASE_URL}icons/icon-rounded-512.png`;
 
 const TOTAL_CELLS = GRID_SIZE * GRID_SIZE;
 
