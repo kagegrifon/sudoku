@@ -28,6 +28,32 @@ function createPuzzleId(): string {
   return crypto.randomUUID();
 }
 
+function createEmptyGrid(): Grid {
+  return Array.from({ length: GRID_SIZE }, () => Array<number>(GRID_SIZE).fill(EMPTY_CELL));
+}
+
+/**
+ * Состояние «активной партии нет»: пользователь на главном экране, ничего не запущено.
+ * Пазл намеренно НЕ генерируется — генерация происходит только по NEW_GAME.
+ * `difficulty` запоминается как предвыбор для следующей новой игры.
+ */
+export function createIdleGameState(difficulty: Difficulty): GameState {
+  return {
+    schemaVersion: GAME_SCHEMA_VERSION,
+    puzzleId: createPuzzleId(),
+    difficulty,
+    initialGrid: createEmptyGrid(),
+    currentGrid: createEmptyGrid(),
+    solution: createEmptyGrid(),
+    notes: createEmptyNotes(),
+    history: [],
+    lives: INITIAL_LIVES,
+    elapsedSeconds: 0,
+    startedAt: new Date().toISOString(),
+    status: 'idle',
+  };
+}
+
 export function createInitialGameState(difficulty: Difficulty): GameState {
   const { puzzle, solution } = generatePuzzle(difficulty);
   return {
@@ -181,6 +207,9 @@ const resume: Handler<Extract<GameAction, { type: 'RESUME' }>> = (state) => {
 const newGame: Handler<Extract<GameAction, { type: 'NEW_GAME' }>> = (_state, action) =>
   createInitialGameState(action.difficulty);
 
+const resetToIdle: Handler<Extract<GameAction, { type: 'RESET_TO_IDLE' }>> = (state) =>
+  createIdleGameState(state.difficulty);
+
 const restore: Handler<Extract<GameAction, { type: 'RESTORE' }>> = (_state, action) => action.state;
 
 const erase: Handler<Extract<GameAction, { type: 'ERASE' }>> = (state, action) => {
@@ -235,6 +264,7 @@ const HANDLERS: {
   PAUSE: pause,
   RESUME: resume,
   NEW_GAME: newGame,
+  RESET_TO_IDLE: resetToIdle,
   RESTORE: restore,
 };
 

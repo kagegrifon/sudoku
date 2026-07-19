@@ -6,6 +6,8 @@ import { AppProvider, useAppView } from '../../state/AppContext';
 import { SettingsProvider } from '../../state/SettingsContext';
 import { RecordsProvider } from '../../state/RecordsContext';
 import { GameProvider } from '../../state/GameContext';
+import { GAME_STORAGE_KEY } from '../../state/storage/localGame';
+import { GAME_SCHEMA_VERSION } from '../../state/gameTypes';
 
 vi.mock('../../state/storage/historyDb', () => ({
   recordCompletedGame: vi.fn().mockResolvedValue(undefined),
@@ -48,6 +50,29 @@ describe('HomeScreen', () => {
   it('без начатой партии карточку «Продолжить» не показывает', () => {
     renderHome();
     expect(screen.queryByTestId('continue-card')).toBeNull();
+  });
+
+  it('восстановленная активная партия показывает «Продолжить», даже если ходов и времени ещё нет', () => {
+    // Партия только что начата: elapsedSeconds=0, history пуст — но статус in_progress.
+    // Карточка должна показываться по статусу, а не по эвристике «есть ходы/время».
+    const emptyGrid = Array.from({ length: 9 }, () => Array<number>(9).fill(0));
+    const saved = {
+      schemaVersion: GAME_SCHEMA_VERSION,
+      puzzleId: 'restored',
+      difficulty: 'easy',
+      initialGrid: emptyGrid,
+      currentGrid: emptyGrid,
+      solution: emptyGrid,
+      notes: Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => [] as number[])),
+      history: [],
+      lives: 3,
+      elapsedSeconds: 0,
+      startedAt: '2026-07-03T00:00:00.000Z',
+      status: 'in_progress',
+    };
+    localStorage.setItem(GAME_STORAGE_KEY, JSON.stringify(saved));
+    renderHome();
+    expect(screen.getByTestId('continue-card')).toBeInTheDocument();
   });
 
   it('Статистика ведёт на экран статистики', () => {

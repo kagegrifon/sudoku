@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
+import { useEffect, useRef } from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import GameScreen from './GameScreen';
-import { GameProvider } from '../../state/GameContext';
+import { GameProvider, useGame } from '../../state/GameContext';
 import { SettingsProvider } from '../../state/SettingsContext';
 import { RecordsProvider } from '../../state/RecordsContext';
 import { AppProvider } from '../../state/AppContext';
@@ -42,18 +43,42 @@ function mockPuzzle(puzzle: Grid) {
   vi.spyOn(core, 'generatePuzzle').mockReturnValue({ puzzle, solution: solved });
 }
 
+/**
+ * На экран игры попадают только с активной партией, поэтому в тестах стартуем
+ * её один раз при монтировании (иначе стартовое состояние — idle с пустым полем).
+ */
+function GameStarter() {
+  const game = useGame();
+  const started = useRef(false);
+  useEffect(() => {
+    if (started.current) return;
+    started.current = true;
+    game.newGame('easy');
+  }, [game]);
+  return null;
+}
+
+/** Выводит текущий статус партии, чтобы тест мог проверять переходы. */
+function StatusProbe() {
+  const game = useGame();
+  return <span data-testid="game-status">{game.state.status}</span>;
+}
+
 function renderScreen() {
-  return render(
+  const result = render(
     <AppProvider>
       <SettingsProvider>
         <RecordsProvider>
           <GameProvider>
+            <GameStarter />
+            <StatusProbe />
             <GameScreen />
           </GameProvider>
         </RecordsProvider>
       </SettingsProvider>
     </AppProvider>,
   );
+  return result;
 }
 
 beforeEach(() => {
@@ -114,6 +139,16 @@ describe('GameScreen', () => {
   it('до конца партии WinScreen не показан', () => {
     renderScreen();
     expect(screen.queryByTestId('win-screen')).toBeNull();
+  });
+
+  it('«На главную» с экрана победы сбрасывает партию в idle', () => {
+    mockPuzzle(puzzleOneHole());
+    renderScreen();
+    fireEvent.click(screen.getByTestId('cell-0-0'));
+    fireEvent.click(screen.getByTestId('digit-5')); // победа
+    expect(screen.getByTestId('game-status').textContent).toBe('completed');
+    fireEvent.click(screen.getByTestId('win-home'));
+    expect(screen.getByTestId('game-status').textContent).toBe('idle');
   });
 
   it('пауза показывает оверлей, «Продолжить» его убирает', () => {

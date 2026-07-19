@@ -58,6 +58,11 @@ describe('localGame', () => {
     localStorage.setItem(GAME_STORAGE_KEY, '{не json');
     expect(loadGame()).toBeNull();
   });
+  it('сохранение idle-партии стирает существующую сохранёнку (хранить нечего)', () => {
+    saveGame(sampleState({ status: 'in_progress' }));
+    saveGame(sampleState({ status: 'idle' }));
+    expect(localStorage.getItem(GAME_STORAGE_KEY)).toBeNull();
+  });
   it('clearGame удаляет запись', () => {
     saveGame(sampleState());
     clearGame();

@@ -34,6 +34,13 @@ export default function GameScreen() {
     setSelected(null);
   };
 
+  // С экрана результата уход на главную завершает партию: сбрасываем в idle,
+  // чтобы «Продолжить» не предлагало уже сыгранную партию.
+  const leaveToHomeFromResult = () => {
+    game.resetToIdle();
+    navigate('home');
+  };
+
   const gameOver = game.won || game.lost;
   const paused = game.state.status === 'paused';
   const padDisabled = selected === null || gameOver || paused;
@@ -98,7 +105,7 @@ export default function GameScreen() {
           livesLeft={game.state.lives}
           isNewRecord={game.isNewRecord}
           onNewGame={restartGame}
-          onHome={() => navigate('home')}
+          onHome={leaveToHomeFromResult}
         />
       )}
     </div>
