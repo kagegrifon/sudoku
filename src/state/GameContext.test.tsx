@@ -8,7 +8,7 @@ import { RecordsProvider } from './RecordsContext';
 import { GAME_STORAGE_KEY } from './storage/localGame';
 import { GAME_SCHEMA_VERSION } from './gameTypes';
 import * as core from '../core';
-import type { Grid } from '../core';
+import type { Grid, Difficulty } from '../core';
 import * as historyDb from './storage/historyDb';
 
 /** GameProvider читает настройки и рекорды из соответствующих провайдеров. */
@@ -61,6 +61,9 @@ function Probe() {
       <button data-testid="toggle" type="button" onClick={game.toggleNotesMode}>
         toggle
       </button>
+      <button data-testid="start" type="button" onClick={() => game.newGame('easy')}>
+        start
+      </button>
     </div>
   );
 }
@@ -79,6 +82,7 @@ describe('GameContext', () => {
         <Probe />
       </Providers>,
     );
+    fireEvent.click(screen.getByTestId('start'));
     fireEvent.click(screen.getByTestId('place'));
     expect(screen.getByTestId('cell00').textContent).toBe('7');
   });
@@ -88,11 +92,30 @@ describe('GameContext', () => {
         <Probe />
       </Providers>,
     );
+    fireEvent.click(screen.getByTestId('start'));
     fireEvent.click(screen.getByTestId('toggle'));
     fireEvent.click(screen.getByTestId('place'));
     expect(screen.getByTestId('notes00').textContent).toBe('7');
     expect(screen.getByTestId('cell00').textContent).toBe('0');
   });
+  it('при первом входе (нет сохранёнки) партия не стартует — статус idle', () => {
+    const apiRef = renderGameApi();
+    expect(apiRef.current!.state.status).toBe('idle');
+  });
+
+  it('при первом входе таймер не тикает', async () => {
+    vi.useFakeTimers();
+    try {
+      const apiRef = renderGameApi();
+      act(() => {
+        vi.advanceTimersByTime(3000);
+      });
+      expect(apiRef.current!.state.elapsedSeconds).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('восстанавливает in_progress партию из localStorage', () => {
     const saved = {
       schemaVersion: GAME_SCHEMA_VERSION,
@@ -141,6 +164,13 @@ function renderGameApi(): { current: GameApi | null } {
     </Providers>,
   );
   return apiRef;
+}
+
+/** Явно стартует партию: из idle переводит в in_progress с сгенерированным пазлом. */
+function startGame(apiRef: { current: GameApi | null }, difficulty: Difficulty = 'easy'): void {
+  act(() => {
+    apiRef.current!.newGame(difficulty);
+  });
 }
 
 /** Дозаписывает все пустые клетки решением — партия переходит в won. */
@@ -201,6 +231,7 @@ describe('GameProvider — запись CompletedGame', () => {
 
   it('победа пишет outcome=won ровно один раз', async () => {
     const api = renderGameApi();
+    startGame(api);
     fillFromSolution(api);
     await waitFor(() => {
       expect(vi.mocked(historyDb.recordCompletedGame)).toHaveBeenCalledTimes(1);
@@ -212,6 +243,7 @@ describe('GameProvider — запись CompletedGame', () => {
 
   it('поражение (0 жизней) пишет outcome=lost', async () => {
     const api = renderGameApi();
+    startGame(api);
     loseAllLives(api);
     await waitFor(() => {
       const calls = vi.mocked(historyDb.recordCompletedGame).mock.calls;
@@ -221,6 +253,7 @@ describe('GameProvider — запись CompletedGame', () => {
 
   it('новая игра поверх начатой in_progress пишет outcome=abandoned', async () => {
     const api = renderGameApi();
+    startGame(api);
     makeOneMove(api);
     act(() => {
       api.current!.newGame('easy');

@@ -2,7 +2,16 @@ import { GAME_SCHEMA_VERSION, type GameState } from '../gameTypes';
 
 export const GAME_STORAGE_KEY = 'sudoku:game';
 
+// Восстанавливаем только незавершённые партии, поэтому и храним только их.
+const PERSISTABLE_STATUSES: ReadonlySet<GameState['status']> = new Set(['in_progress', 'paused']);
+
 export function saveGame(state: GameState): void {
+  // idle (нет партии) и completed (завершена) хранить незачем — стираем запись,
+  // чтобы при следующей загрузке приложение не пыталось восстановить их.
+  if (!PERSISTABLE_STATUSES.has(state.status)) {
+    clearGame();
+    return;
+  }
   try {
     localStorage.setItem(GAME_STORAGE_KEY, JSON.stringify(state));
   } catch {

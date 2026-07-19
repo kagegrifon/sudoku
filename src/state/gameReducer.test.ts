@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createInitialGameState, gameReducer, isGiven } from './gameReducer';
+import { createIdleGameState, createInitialGameState, gameReducer, isGiven } from './gameReducer';
 import { GAME_SCHEMA_VERSION, INITIAL_LIVES, type GameState } from './gameTypes';
 import * as core from '../core';
 import type { Grid } from '../core';
@@ -71,6 +71,35 @@ describe('createInitialGameState', () => {
   });
 });
 
+describe('createIdleGameState', () => {
+  it('статус idle — активной партии нет', () => {
+    const state = createIdleGameState('easy');
+    expect(state.status).toBe('idle');
+  });
+  it('не генерирует пазл (не вызывает generatePuzzle)', () => {
+    vi.mocked(core.generatePuzzle).mockClear();
+    createIdleGameState('easy');
+    expect(vi.mocked(core.generatePuzzle)).not.toHaveBeenCalled();
+  });
+  it('elapsedSeconds = 0 и история пуста', () => {
+    const state = createIdleGameState('easy');
+    expect(state.elapsedSeconds).toBe(0);
+    expect(state.history).toEqual([]);
+  });
+  it('запоминает переданную сложность (для последующей новой игры)', () => {
+    const state = createIdleGameState('hard');
+    expect(state.difficulty).toBe('hard');
+  });
+});
+
+describe('TICK в idle', () => {
+  it('не тикает', () => {
+    const state = createIdleGameState('easy');
+    const next = gameReducer(state, { type: 'TICK' });
+    expect(next.elapsedSeconds).toBe(0);
+  });
+});
+
 describe('isGiven', () => {
   it('true для заданной клетки, false для пустой', () => {
     const state = createInitialGameState('easy');
@@ -104,6 +133,28 @@ describe('NEW_GAME', () => {
     expect(next.lives).toBe(INITIAL_LIVES);
     expect(next.elapsedSeconds).toBe(0);
     expect(next.status).toBe('in_progress');
+  });
+});
+
+describe('RESET_TO_IDLE', () => {
+  it('переводит завершённую партию в idle', () => {
+    const completed: GameState = {
+      ...createInitialGameState('easy'),
+      status: 'completed',
+      result: 'won',
+      elapsedSeconds: 120,
+    };
+    const next = gameReducer(completed, { type: 'RESET_TO_IDLE' });
+    expect(next.status).toBe('idle');
+  });
+  it('сохраняет lastDifficulty завершённой партии', () => {
+    const completed: GameState = {
+      ...createInitialGameState('hard'),
+      status: 'completed',
+      result: 'won',
+    };
+    const next = gameReducer(completed, { type: 'RESET_TO_IDLE' });
+    expect(next.difficulty).toBe('hard');
   });
 });
 
