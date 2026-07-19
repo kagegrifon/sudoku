@@ -56,12 +56,18 @@ export function useAppUpdate(getGameState: () => GameState): AppUpdateApi {
     setCheckState((current) => nextUpdateCheckState({ current, event }));
   }, []);
 
-  // Обновление может быть найдено и само, без нажатия кнопки, — синхронизируем.
+  // `updateAvailable` — внешний сигнал (не независимое состояние), поэтому не зеркалим
+  // его в checkState через эффект, а выводим итоговое состояние прямо при рендере.
+  const effectiveCheckState = updateAvailable
+    ? nextUpdateCheckState({ current: checkState, event: 'updateFound' })
+    : checkState;
+
+  // Таймер проверки всё ещё нужно погасить, когда обновление найдено, — иначе
+  // повиснет до 10 секунд. Это работа с внешней системой (таймером), не setState.
   useEffect(() => {
     if (!updateAvailable) return;
     clearCheckTimer();
-    dispatchCheckEvent('updateFound');
-  }, [updateAvailable, dispatchCheckEvent]);
+  }, [updateAvailable]);
 
   // Сообщающие состояния гаснут обратно в idle.
   useEffect(() => {
@@ -113,12 +119,12 @@ export function useAppUpdate(getGameState: () => GameState): AppUpdateApi {
   }, [dispatchCheckEvent]);
 
   const handleVersionAction = useCallback(() => {
-    if (checkState === 'updateReady') {
+    if (effectiveCheckState === 'updateReady') {
       applyUpdate();
       return;
     }
     startCheck();
-  }, [checkState, applyUpdate, startCheck]);
+  }, [effectiveCheckState, applyUpdate, startCheck]);
 
-  return { updateAvailable, applyUpdate, checkState, handleVersionAction };
+  return { updateAvailable, applyUpdate, checkState: effectiveCheckState, handleVersionAction };
 }
