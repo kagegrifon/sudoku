@@ -45,12 +45,12 @@ export function useAppUpdate(getGameState: () => GameState): AppUpdateApi {
     },
   });
 
-  const clearCheckTimer = () => {
+  const clearCheckTimer = useCallback(() => {
     if (checkTimerRef.current !== null) {
       clearTimeout(checkTimerRef.current);
       checkTimerRef.current = null;
     }
-  };
+  }, []);
 
   const dispatchCheckEvent = useCallback((event: UpdateCheckEvent) => {
     setCheckState((current) => nextUpdateCheckState({ current, event }));
@@ -67,7 +67,7 @@ export function useAppUpdate(getGameState: () => GameState): AppUpdateApi {
   useEffect(() => {
     if (!updateAvailable) return;
     clearCheckTimer();
-  }, [updateAvailable]);
+  }, [updateAvailable, clearCheckTimer]);
 
   // Сообщающие состояния гаснут обратно в idle.
   useEffect(() => {
@@ -84,13 +84,16 @@ export function useAppUpdate(getGameState: () => GameState): AppUpdateApi {
   }, [checkState, dispatchCheckEvent]);
 
   // Игрок может уйти с настроек во время проверки — гасим висящий таймер.
-  useEffect(() => clearCheckTimer, []);
+  useEffect(() => clearCheckTimer, [clearCheckTimer]);
 
   const applyUpdate = useCallback(() => {
     saveGame(getGameState());
     void updateServiceWorker(true);
   }, [getGameState, updateServiceWorker]);
 
+  // `checkStarted` перед исходом обязателен: исходы применимы только к состоянию
+  // `checking`, иначе переход будет проглочен. Оба setState попадают в один рендер,
+  // поэтому промежуточное «Проверяем…» не мелькает — офлайн-ответ мгновенный.
   const startCheck = useCallback(() => {
     if (!navigator.onLine) {
       dispatchCheckEvent('checkStarted');
@@ -116,7 +119,7 @@ export function useAppUpdate(getGameState: () => GameState): AppUpdateApi {
       clearCheckTimer();
       dispatchCheckEvent('checkFailed');
     });
-  }, [dispatchCheckEvent]);
+  }, [dispatchCheckEvent, clearCheckTimer]);
 
   const handleVersionAction = useCallback(() => {
     if (effectiveCheckState === 'updateReady') {
