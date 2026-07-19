@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
+import { useEffect, useRef } from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import Header from './Header';
-import { GameProvider } from '../../state/GameContext';
+import { GameProvider, useGame } from '../../state/GameContext';
 import { SettingsProvider } from '../../state/SettingsContext';
 import { RecordsProvider } from '../../state/RecordsContext';
 import { AppProvider, useAppView } from '../../state/AppContext';
@@ -37,6 +38,18 @@ function CurrentScreen() {
   return <span data-testid="current-screen">{current}</span>;
 }
 
+/** Header в приложении рендерится только с активной партией — стартуем её в тесте. */
+function GameStarter() {
+  const game = useGame();
+  const started = useRef(false);
+  useEffect(() => {
+    if (started.current) return;
+    started.current = true;
+    game.newGame('easy');
+  }, [game]);
+  return null;
+}
+
 beforeEach(() => {
   localStorage.clear();
   vi.restoreAllMocks();
@@ -50,6 +63,7 @@ function renderHeader() {
       <SettingsProvider>
         <RecordsProvider>
           <GameProvider>
+            <GameStarter />
             <CurrentScreen />
             <Header />
           </GameProvider>

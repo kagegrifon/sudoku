@@ -61,9 +61,9 @@ export default function HomeScreen() {
   const game = useGame();
   const [pickerOpen, setPickerOpen] = useState(false);
 
-  const gameStarted =
-    game.state.status !== 'completed' &&
-    (game.state.history.length > 0 || game.state.elapsedSeconds > 0);
+  // «Продолжить» показываем, когда есть активная партия — идущая или на паузе.
+  // idle (нет игры) и completed (партия завершена) карточку не показывают.
+  const gameStarted = game.state.status === 'in_progress' || game.state.status === 'paused';
   const filledCells = countFilledCells(game.state.currentGrid);
 
   const startGame = (difficulty: Difficulty) => {

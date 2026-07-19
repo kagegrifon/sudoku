@@ -11,9 +11,9 @@ import {
   type ReactNode,
 } from 'react';
 import { findConflicts, EMPTY_CELL, type Difficulty } from '../core';
-import { gameReducer, createInitialGameState } from './gameReducer';
+import { gameReducer, createIdleGameState } from './gameReducer';
 import type { GameState, GameAction, GameStatus } from './gameTypes';
-import { loadGame, saveGame } from './storage/localGame';
+import { loadGame, saveGame, clearGame } from './storage/localGame';
 import { loadSettings } from './storage/localSettings';
 import { recordCompletedGame } from './storage/historyDb';
 import { countRemainingDigits, type RemainingDigit } from './remainingDigits';
@@ -48,6 +48,7 @@ export interface GameApi {
   erase(target: CellTarget): void;
   undo(): void;
   newGame(difficulty: Difficulty): void;
+  resetToIdle(): void;
   toggleNotesMode(): void;
   pause(): void;
   resume(): void;
@@ -58,7 +59,9 @@ const GameContext = createContext<GameApi | null>(null);
 function initGameState(): GameState {
   const restored = loadGame();
   if (restored) return restored;
-  return createInitialGameState(loadSettings().lastDifficulty);
+  // Без сохранённой партии не стартуем игру автоматически: показываем главный
+  // экран в состоянии idle. Игра начинается только по явному выбору сложности.
+  return createIdleGameState(loadSettings().lastDifficulty);
 }
 
 /** Клетка ошибочна: игрок вписал непустое значение, не совпадающее с решением. */
@@ -221,6 +224,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     erase: ({ row, col }) => dispatch({ type: 'ERASE', row, col }),
     undo: () => dispatch({ type: 'UNDO' }),
     newGame,
+    resetToIdle: () => {
+      clearGame();
+      dispatch({ type: 'RESET_TO_IDLE' });
+    },
     toggleNotesMode,
     pause: () => dispatch({ type: 'PAUSE' }),
     resume: () => dispatch({ type: 'RESUME' }),

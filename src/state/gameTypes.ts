@@ -22,7 +22,7 @@ export interface Move {
   clearedNotes: CellNotesSnapshot[];
 }
 
-export type GameStatus = 'in_progress' | 'paused' | 'completed';
+export type GameStatus = 'idle' | 'in_progress' | 'paused' | 'completed';
 export type GameResult = 'won' | 'lost';
 
 export interface GameState {
@@ -50,6 +50,7 @@ export type GameAction =
   | { type: 'PAUSE' }
   | { type: 'RESUME' }
   | { type: 'NEW_GAME'; difficulty: Difficulty }
+  | { type: 'RESET_TO_IDLE' }
   | { type: 'RESTORE'; state: GameState };
 
 export interface Settings {
