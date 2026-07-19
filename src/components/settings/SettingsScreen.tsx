@@ -9,8 +9,8 @@ import type { UpdateCheckState } from '../../state/updateCheckState';
 import Toggle from '../ui/Toggle';
 import styles from './SettingsScreen.module.css';
 
-// Отображаемая версия — заглушка (реальная схема версий появится с PWA-обновлением).
-const APP_VERSION = '1.0.0';
+// Версия из package.json, подставляется на сборке (см. define в vite.config.ts).
+const APP_VERSION = import.meta.env.VITE_APP_VERSION;
 
 const THEME_OPTIONS: Array<{ value: Theme; label: string }> = [
   { value: 'system', label: 'Система' },
@@ -97,7 +97,9 @@ export default function SettingsScreen() {
         <div className={styles.row}>
           <div className={styles.versionText}>
             <span className={styles.rowText}>Версия</span>
-            <span className={styles.versionNumber}>{APP_VERSION}</span>
+            <span className={styles.versionNumber} data-testid="app-version">
+              {APP_VERSION}
+            </span>
           </div>
           <button
             type="button"

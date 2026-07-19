@@ -5,9 +5,11 @@
 **Статусы:** 📋 запланировано · 🚧 в работе · ✅ готово · 🧊 отложено
 **Приоритет:** `MVP` · `backlog`
 **Даты:** ISO `YYYY-MM-DD`
-**Заметки:** короткий комментарий; № этапа из спеки (только для MVP); ссылка на ADR, напр. `[ADR-0001](adr/0001-css-approach.md)`
+**Заметки:** короткий комментарий; № этапа из спеки (только для MVP); версия релиза в формате `v0.2.0`; ссылка на ADR, напр. `[ADR-0001](adr/0001-css-approach.md)`
 
 Правила ведения — см. [CLAUDE.md](../CLAUDE.md), секция «Ведение проекта / трекинг».
+Правила выбора версии — [CLAUDE.md](../CLAUDE.md), секция «Версионирование». Фичи, завершённые
+до введения версионирования (всё, что вошло в `v0.1.0`), задним числом не размечаются.
 
 | Фича | Статус | Приоритет | Зависимости | Ветка / PR | Спека / доки | План создан | Завершено | Заметки |
 |---|---|---|---|---|---|---|---|---|
@@ -31,4 +33,4 @@
 | Обёртка в Capacitor (публикация в App Store / Google Play) | 📋 запланировано | backlog | — | — | [spec §11](../sudoku-pwa-spec.md) | 2026-07-02 | — | Backlog |
 | Публикация в GitHub Pages (CI + деплой через Actions) | 🚧 в работе | backlog | PWA-полировка | feat/github-pages-deploy | [design](superpowers/specs/2026-07-19-github-pages-deploy-design.md), [план](superpowers/plans/2026-07-19-github-pages-deploy.md) | 2026-07-19 | — | CI на push в main (lint+type-check+test+build), деплой с ручным approve через environment github-pages. base=/sudoku/ |
 | Кнопка «Проверить обновления» в настройках | ✅ готово | backlog | PWA-полировка | feat/manual-update-check | [design](superpowers/specs/2026-07-19-manual-update-check-design.md) | 2026-07-19 | 2026-07-19 | Ручной вызов `registration.update()`; одна кнопка меняет роль по состоянию. Расширяет [ADR-0004](adr/0004-pwa-update-strategy.md) |
-| Версионирование релизов (semver, bump при вливании в main) | 📋 запланировано | backlog | Публикация в GitHub Pages | — | — | 2026-07-19 | — | `APP_VERSION` не меняется между релизами. Нужен разбор: Conventional Commits vs ручной bump, git-теги, шаг в Actions. Отдельная сессия |
+| Версионирование релизов (semver, bump при вливании в main) | ✅ готово | backlog | Публикация в GitHub Pages | chore/versioning | [CLAUDE.md](../CLAUDE.md), секция «Версионирование» | 2026-07-19 | 2026-07-19 | v0.1.0. Ручной bump в фичевой ветке + правило классификации major/minor/patch; версия в UI из package.json; проверка бампа на PR. Git-теги и Conventional Commits отклонены |
