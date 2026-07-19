@@ -15,6 +15,7 @@
 | Вопрос | Решение | Почему |
 |---|---|---|
 | Адрес сайта | Подпапка `github.io/sudoku/` | Стандартный Pages для repo-сайта; отдельный домен/репо не нужны |
+| base в Vite | Условный от `mode`: prod → `/sudoku/`, dev → `/` | dev-сервер остаётся на `localhost:5173/`; preview проверяет прод-пути |
 | Триггер | `push` в `main` + `workflow_dispatch` | Проверки на каждый push; ручной запуск при необходимости |
 | Публикация | Protected environment `github-pages` с required reviewer | Деплой встаёт на паузу и ждёт approve в UI — контроль без отдельного workflow |
 | Проверки | Полный набор: lint + type-check + test | Не публикуем заведомо сломанную игру |
@@ -105,10 +106,28 @@ job `deploy` висит в статусе Waiting.
 
 ## Изменения в коде проекта
 
-1. **`vite.config.ts`** — добавить `base: '/sudoku/'`.
-   Критично для подпапки: без него ассеты и PWA-манифест резолвятся от корня
+1. **`vite.config.ts`** — сделать `base` **условным от `mode`**, а не жёстким
+   `'/sudoku/'`. Иначе dev-сервер тоже уедет на `/sudoku/` и `http://localhost:5173/`
+   станет отдавать 404.
+
+   ```ts
+   export default defineConfig(({ mode }) => ({
+     base: mode === 'production' ? '/sudoku/' : '/',
+     plugins: [ /* ... */ ],
+     test: { /* ... */ },
+   }))
+   ```
+
+   Поведение по режимам:
+   - `npm run dev` → `mode='development'` → `base='/'` → `http://localhost:5173/` (как сейчас)
+   - `npm run build` → `mode='production'` → `base='/sudoku/'` → корректные пути для Pages
+   - `npm run preview` → поднимает уже собранный `dist/` с вшитым `/sudoku/` →
+     `http://localhost:4173/sudoku/` → **точная проверка прод-путей** без доп. настройки
+
+   `base` на подпапке критичен: без него ассеты и PWA-манифест резолвятся от корня
    домена и ломаются. `vite-plugin-pwa` подхватывает `base` автоматически
-   (manifest, service worker, precache).
+   (manifest, service worker, precache). На `vitest` (environment `node`) `base`
+   не влияет.
 
 2. **`public/.nojekyll`** — пустой файл. Vite копирует `public/` в `dist/`.
    Отключает обработку Jekyll на стороне Pages (Jekyll игнорирует пути,
@@ -126,8 +145,9 @@ job `deploy` висит в статусе Waiting.
 
 Workflow целиком проверяется только реальным прогоном в Actions. До push:
 
-1. Локально: `npm run build && npm run preview` с `base: '/sudoku/'` — убедиться,
-   что превью открывается на пути `/sudoku/` и ассеты грузятся без 404.
+1. Локально: `npm run build && npm run preview` — превью поднимает `dist/` на
+   `http://localhost:4173/sudoku/`; убедиться, что открывается на пути `/sudoku/`
+   и ассеты грузятся без 404. (`npm run dev` при этом остаётся на корне `/`.)
 2. Проверить, что `dist/.nojekyll` попал в сборку.
 
 После первого push:
