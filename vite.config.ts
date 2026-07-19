@@ -4,7 +4,8 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  base: mode === 'production' ? '/sudoku/' : '/',
   plugins: [
     react(),
     VitePWA({
@@ -30,4 +31,4 @@ export default defineConfig({
     environment: 'node',
     setupFiles: ['./src/test/setup.ts'],
   },
-})
+}))

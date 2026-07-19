@@ -29,3 +29,4 @@
 | Несколько сохранённых партий одновременно | 📋 запланировано | backlog | — | — | [spec §11](../sudoku-pwa-spec.md) | 2026-07-02 | — | Backlog |
 | Push-уведомления («продолжите незаконченную партию») | 📋 запланировано | backlog | — | — | [spec §11](../sudoku-pwa-spec.md) | 2026-07-02 | — | Backlog. iOS требует 16.4+ и установку на экран |
 | Обёртка в Capacitor (публикация в App Store / Google Play) | 📋 запланировано | backlog | — | — | [spec §11](../sudoku-pwa-spec.md) | 2026-07-02 | — | Backlog |
+| Публикация в GitHub Pages (CI + деплой через Actions) | 🚧 в работе | backlog | PWA-полировка | feat/github-pages-deploy | [design](superpowers/specs/2026-07-19-github-pages-deploy-design.md), [план](superpowers/plans/2026-07-19-github-pages-deploy.md) | 2026-07-19 | — | CI на push в main (lint+type-check+test+build), деплой с ручным approve через environment github-pages. base=/sudoku/ |
