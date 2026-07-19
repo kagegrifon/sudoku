@@ -5,6 +5,7 @@ import { useGame } from '../../state/GameContext';
 import { useAppUpdate } from '../../state/appUpdate';
 import { clearAllCompletedGames } from '../../state/storage/historyDb';
 import type { Theme } from '../../state/gameTypes';
+import type { UpdateCheckState } from '../../state/updateCheckState';
 import Toggle from '../ui/Toggle';
 import styles from './SettingsScreen.module.css';
 
@@ -23,17 +24,29 @@ const GAME_TOGGLES: Array<{ flag: SettingsFlag; label: string; testId: string }>
   { flag: 'showRemainingCounts', label: 'Счётчик оставшихся цифр', testId: 'toggle-remaining' },
 ];
 
+const UPDATE_BUTTON_LABELS: Record<UpdateCheckState, string> = {
+  idle: 'Проверить обновления',
+  checking: 'Проверяем…',
+  updateReady: 'Обновить',
+  notFound: 'Обновлений не найдено',
+  offline: 'Нет соединения',
+  failed: 'Не удалось проверить',
+};
+
 export default function SettingsScreen() {
   const { goBack } = useAppView();
   const { settings, setTheme, toggle } = useSettings();
   const records = useRecords();
   const game = useGame();
-  const { updateAvailable, applyUpdate } = useAppUpdate(() => game.state);
+  const { checkState, handleVersionAction } = useAppUpdate(() => game.state);
 
   const resetStats = async () => {
     await clearAllCompletedGames();
     await records.refresh();
   };
+
+  const updateButtonLabel = UPDATE_BUTTON_LABELS[checkState];
+  const isCheckInProgress = checkState === 'checking';
 
   return (
     <div className={styles.screen} data-testid="settings-screen">
@@ -90,10 +103,10 @@ export default function SettingsScreen() {
             type="button"
             className={styles.updateButton}
             data-testid="update-app"
-            disabled={!updateAvailable}
-            onClick={applyUpdate}
+            disabled={isCheckInProgress}
+            onClick={handleVersionAction}
           >
-            Обновить
+            {updateButtonLabel}
           </button>
         </div>
         <div className={styles.row}>
