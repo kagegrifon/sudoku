@@ -16,6 +16,7 @@ export interface SettingsApi {
   toggleNotesMode(): void;
   lastDifficulty: Difficulty;
   setLastDifficulty(difficulty: Difficulty): void;
+  dismissIosInstallPrompt(): void;
 }
 
 const SettingsContext = createContext<SettingsApi | null>(null);
@@ -39,6 +40,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       lastDifficulty: settings.lastDifficulty,
       setLastDifficulty: (difficulty) =>
         setSettings((prev) => ({ ...prev, lastDifficulty: difficulty })),
+      dismissIosInstallPrompt: () =>
+        setSettings((prev) => ({ ...prev, iosInstallPromptDismissed: true })),
     }),
     [settings],
   );

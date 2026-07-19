@@ -13,6 +13,16 @@ vi.mock('../../state/storage/historyDb', () => ({
   clearAllCompletedGames: vi.fn().mockResolvedValue(undefined),
 }));
 
+let updateAvailableValue = false;
+const applyUpdate = vi.fn();
+vi.mock('../../state/appUpdate', () => ({
+  useAppUpdate: () => ({ updateAvailable: updateAvailableValue, applyUpdate }),
+}));
+
+vi.mock('../../state/GameContext', () => ({
+  useGame: () => ({ state: { puzzleId: 'p1', status: 'paused' } }),
+}));
+
 function renderSettings() {
   return render(
     <AppProvider>
@@ -28,6 +38,8 @@ function renderSettings() {
 beforeEach(() => {
   localStorage.clear();
   vi.mocked(historyDb.clearAllCompletedGames).mockClear();
+  updateAvailableValue = false;
+  applyUpdate.mockClear();
 });
 afterEach(cleanup);
 
@@ -53,9 +65,19 @@ describe('SettingsScreen', () => {
     expect(toggle.getAttribute('aria-checked')).toBe('true');
   });
 
-  it('кнопка «Обновить» — заглушка (disabled)', () => {
+  it('кнопка «Обновить» отключена, когда обновление недоступно', () => {
+    updateAvailableValue = false;
     renderSettings();
     expect(screen.getByTestId('update-app')).toBeDisabled();
+  });
+
+  it('кнопка «Обновить» активна и вызывает applyUpdate, когда обновление доступно', () => {
+    updateAvailableValue = true;
+    renderSettings();
+    const button = screen.getByTestId('update-app');
+    expect(button).not.toBeDisabled();
+    fireEvent.click(button);
+    expect(applyUpdate).toHaveBeenCalledTimes(1);
   });
 
   it('сброс статистики вызывает clearAllCompletedGames', async () => {

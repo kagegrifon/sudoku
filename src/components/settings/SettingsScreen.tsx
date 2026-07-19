@@ -1,6 +1,8 @@
 import { useAppView } from '../../state/AppContext';
 import { useSettings, type SettingsFlag } from '../../state/SettingsContext';
 import { useRecords } from '../../state/RecordsContext';
+import { useGame } from '../../state/GameContext';
+import { useAppUpdate } from '../../state/appUpdate';
 import { clearAllCompletedGames } from '../../state/storage/historyDb';
 import type { Theme } from '../../state/gameTypes';
 import Toggle from '../ui/Toggle';
@@ -25,6 +27,8 @@ export default function SettingsScreen() {
   const { goBack } = useAppView();
   const { settings, setTheme, toggle } = useSettings();
   const records = useRecords();
+  const game = useGame();
+  const { updateAvailable, applyUpdate } = useAppUpdate(() => game.state);
 
   const resetStats = async () => {
     await clearAllCompletedGames();
@@ -82,8 +86,13 @@ export default function SettingsScreen() {
             <span className={styles.rowText}>Версия</span>
             <span className={styles.versionNumber}>{APP_VERSION}</span>
           </div>
-          {/* TODO: ждёт фичи (PWA update) — сейчас кнопка ничего не делает. */}
-          <button type="button" className={styles.updateButton} data-testid="update-app" disabled>
+          <button
+            type="button"
+            className={styles.updateButton}
+            data-testid="update-app"
+            disabled={!updateAvailable}
+            onClick={applyUpdate}
+          >
             Обновить
           </button>
         </div>

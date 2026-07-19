@@ -6,6 +6,8 @@ import HomeScreen from './components/home/HomeScreen';
 import GameScreen from './components/game/GameScreen';
 import SettingsScreen from './components/settings/SettingsScreen';
 import StatsView from './components/stats/StatsView';
+import UpdateBanner from './components/update/UpdateBanner';
+import InstallPrompt from './components/install/InstallPrompt';
 import './App.css';
 
 const SCREENS: Record<Screen, () => JSX.Element> = {
@@ -28,6 +30,8 @@ export default function App() {
         <RecordsProvider>
           <GameProvider>
             <ActiveScreen />
+            <UpdateBanner />
+            <InstallPrompt />
           </GameProvider>
         </RecordsProvider>
       </SettingsProvider>
