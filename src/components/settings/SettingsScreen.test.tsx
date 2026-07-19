@@ -110,6 +110,13 @@ describe('SettingsScreen', () => {
     expect(handleVersionAction).toHaveBeenCalledTimes(1);
   });
 
+  // Версия подставляется из package.json на сборке (define в vite.config.ts).
+  // Если define сломается, здесь окажется пустая строка — тест это ловит.
+  it('показывает подставленную версию в формате SemVer', () => {
+    renderSettings();
+    expect(screen.getByTestId('app-version').textContent).toMatch(/^\d+\.\d+\.\d+$/);
+  });
+
   it('сброс статистики вызывает clearAllCompletedGames', async () => {
     renderSettings();
     fireEvent.click(screen.getByTestId('reset-stats'));
