@@ -40,7 +40,7 @@
 }
 
 .digit {
-  font-size: clamp(24px, 6vmin, 30px);
+  font-size: clamp(24px, 9vmin, 40px);
   font-weight: 500;
   color: var(--accent);
   line-height: 1.1;
