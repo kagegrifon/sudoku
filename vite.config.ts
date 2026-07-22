@@ -1,11 +1,19 @@
 /// <reference types="vitest/config" />
+import { readFileSync } from 'node:fs'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// Версия приложения — единственный источник правды package.json.
+// Подставляется в бандл как import.meta.env.VITE_APP_VERSION и показывается на экране настроек.
+const appVersion = JSON.parse(readFileSync('./package.json', 'utf8')).version
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
   base: mode === 'production' ? '/sudoku/' : '/',
+  define: {
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion),
+  },
   plugins: [
     react(),
     VitePWA({
