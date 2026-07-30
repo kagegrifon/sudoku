@@ -36,3 +36,17 @@ export function countRemainingDigits({
   }
   return result;
 }
+
+/**
+ * Цифры, у которых верно расставлены все девять вхождений: их больше не нужно
+ * ни вводить, ни держать в карандашных пометках.
+ */
+export function collectCompletedDigits(
+  remainingByDigit: Record<number, RemainingDigit>,
+): Set<number> {
+  const completed = new Set<number>();
+  for (const [digit, counts] of Object.entries(remainingByDigit)) {
+    if (counts.remaining === 0) completed.add(Number(digit));
+  }
+  return completed;
+}

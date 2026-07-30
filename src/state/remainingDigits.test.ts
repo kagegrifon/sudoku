@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { countRemainingDigits } from './remainingDigits';
+import { collectCompletedDigits, countRemainingDigits } from './remainingDigits';
 import type { Grid } from '../core';
 
 const solution: Grid = [
@@ -43,5 +43,51 @@ describe('countRemainingDigits', () => {
     expect(result[9]).toEqual({ placed: 0, remaining: 9 });
     // 3 (правильное значение клетки) осталась нетронутой.
     expect(result[3]).toEqual({ placed: 0, remaining: 9 });
+  });
+});
+
+/** Поле, на котором верно расставлены все девять вхождений указанной цифры. */
+function gridWithDigitFullyPlaced(digit: number): Grid {
+  const grid = emptyGrid();
+  for (let row = 0; row < 9; row += 1) {
+    for (let col = 0; col < 9; col += 1) {
+      if (solution[row][col] === digit) grid[row][col] = digit;
+    }
+  }
+  return grid;
+}
+
+describe('collectCompletedDigits', () => {
+  it('пустое поле: ни одна цифра не завершена', () => {
+    const remainingByDigit = countRemainingDigits({ currentGrid: emptyGrid(), solution });
+    expect(collectCompletedDigits(remainingByDigit)).toEqual(new Set());
+  });
+
+  it('цифра попадает в набор, когда расставлены все девять её вхождений', () => {
+    const remainingByDigit = countRemainingDigits({
+      currentGrid: gridWithDigitFullyPlaced(7),
+      solution,
+    });
+    expect(collectCompletedDigits(remainingByDigit)).toEqual(new Set([7]));
+  });
+
+  it('восьми вхождений недостаточно', () => {
+    const grid = gridWithDigitFullyPlaced(7);
+    grid[0][4] = 0; // убираем одну из девяти семёрок
+    const remainingByDigit = countRemainingDigits({ currentGrid: grid, solution });
+    expect(collectCompletedDigits(remainingByDigit)).toEqual(new Set());
+  });
+
+  it('ошибочно вписанная девятая цифра не завершает набор', () => {
+    const grid = gridWithDigitFullyPlaced(7);
+    grid[0][4] = 0; // solution[0][4] === 7 — освобождаем клетку
+    grid[0][0] = 7; // вписываем семёрку не на своё место (solution 5)
+    const remainingByDigit = countRemainingDigits({ currentGrid: grid, solution });
+    expect(collectCompletedDigits(remainingByDigit)).toEqual(new Set());
+  });
+
+  it('решённое поле: завершены все девять цифр', () => {
+    const remainingByDigit = countRemainingDigits({ currentGrid: solution, solution });
+    expect(collectCompletedDigits(remainingByDigit)).toEqual(new Set([1, 2, 3, 4, 5, 6, 7, 8, 9]));
   });
 });
