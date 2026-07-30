@@ -16,7 +16,11 @@ import type { GameState, GameAction, GameStatus } from './gameTypes';
 import { loadGame, saveGame, clearGame } from './storage/localGame';
 import { loadSettings } from './storage/localSettings';
 import { recordCompletedGame } from './storage/historyDb';
-import { countRemainingDigits, type RemainingDigit } from './remainingDigits';
+import {
+  collectCompletedDigits,
+  countRemainingDigits,
+  type RemainingDigit,
+} from './remainingDigits';
 import { useSettings } from './SettingsContext';
 import { useRecords } from './RecordsContext';
 
@@ -43,6 +47,8 @@ export interface GameApi {
   canUndo: boolean;
   notesMode: boolean;
   remainingByDigit: Record<number, RemainingDigit>;
+  /** Цифры с девятью верными вхождениями: скрыты на нампаде и в заметках. */
+  completedDigits: Set<number>;
   cellIsGiven(row: number, col: number): boolean;
   inputDigit(target: DigitTarget): void;
   erase(target: CellTarget): void;
@@ -184,6 +190,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     () => countRemainingDigits({ currentGrid: state.currentGrid, solution: state.solution }),
     [state.currentGrid, state.solution],
   );
+  const completedDigits = useMemo(
+    () => collectCompletedDigits(remainingByDigit),
+    [remainingByDigit],
+  );
 
   useGamePersistence(state);
   useGameTimer({ status: state.status, dispatch });
@@ -219,6 +229,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     canUndo: state.history.length > 0 && state.status === 'in_progress',
     notesMode,
     remainingByDigit,
+    completedDigits,
     cellIsGiven: (row, col) => state.initialGrid[row][col] !== EMPTY_CELL,
     inputDigit,
     erase: ({ row, col }) => dispatch({ type: 'ERASE', row, col }),

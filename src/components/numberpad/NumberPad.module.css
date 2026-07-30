@@ -60,3 +60,13 @@
   opacity: 0.4;
   cursor: default;
 }
+
+/*
+ * Цифра расставлена полностью — кнопка исчезает, но слот остаётся занятым:
+ * visibility (а не display: none) сохраняет раскладку и во flex-ряду (portrait),
+ * и в сетке 3×3 (landscape), поэтому соседние цифры не смещаются.
+ */
+.completed {
+  visibility: hidden;
+  pointer-events: none;
+}

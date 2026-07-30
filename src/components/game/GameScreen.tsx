@@ -55,6 +55,7 @@ export default function GameScreen() {
         <Board
           grid={game.state.currentGrid}
           notes={game.state.notes}
+          completedDigits={game.completedDigits}
           conflicts={game.conflicts}
           mistakes={game.mistakes}
           selected={selected}
@@ -83,6 +84,7 @@ export default function GameScreen() {
             disabled={padDisabled}
             showRemaining={settings.showRemainingCounts}
             remainingByDigit={game.remainingByDigit}
+            completedDigits={game.completedDigits}
           />
         </div>
       </div>
