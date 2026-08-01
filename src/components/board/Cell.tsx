@@ -10,8 +10,12 @@ export interface CellProps {
   given: boolean;
   highlight: CellHighlight;
   notes?: number[];
+  /** Цифры с девятью верными вхождениями: их пометки в клетке не показываем. */
+  completedDigits?: ReadonlySet<number>;
   onSelect(args: { row: number; col: number }): void;
 }
+
+const NO_COMPLETED_DIGITS: ReadonlySet<number> = new Set();
 
 // Соответствие «флаг подсветки → CSS-класс». Порядок не важен: классы независимы.
 const HIGHLIGHT_CLASSES: Array<{ active: (h: CellHighlight) => boolean; className: string }> = [
@@ -24,14 +28,26 @@ const HIGHLIGHT_CLASSES: Array<{ active: (h: CellHighlight) => boolean; classNam
 
 const NOTE_SLOTS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-function CellComponent({ row, col, value, given, highlight, notes = [], onSelect }: CellProps) {
+function CellComponent({
+  row,
+  col,
+  value,
+  given,
+  highlight,
+  notes = [],
+  completedDigits = NO_COMPLETED_DIGITS,
+  onSelect,
+}: CellProps) {
   const highlightClasses = HIGHLIGHT_CLASSES.filter((entry) => entry.active(highlight)).map(
     (entry) => entry.className,
   );
   const givenClass = given ? styles.given : styles.editable;
   const className = [styles.cell, givenClass, ...highlightClasses].join(' ');
 
-  const showNotes = value === EMPTY_CELL && notes.length > 0;
+  // Пометки завершённых цифр не показываем: они уже расставлены на поле.
+  // Сам массив notes не трогаем — при отмене хода пометки вернутся сами.
+  const visibleNotes = notes.filter((candidate) => !completedDigits.has(candidate));
+  const showNotes = value === EMPTY_CELL && visibleNotes.length > 0;
   const displayValue = value === EMPTY_CELL ? '' : String(value);
 
   return (
@@ -45,7 +61,7 @@ function CellComponent({ row, col, value, given, highlight, notes = [], onSelect
         <span className={styles.notes} data-testid={`notes-${row}-${col}`}>
           {NOTE_SLOTS.map((candidate) => (
             <span key={candidate} className={styles.note}>
-              {notes.includes(candidate) ? candidate : ''}
+              {visibleNotes.includes(candidate) ? candidate : ''}
             </span>
           ))}
         </span>

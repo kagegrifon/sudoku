@@ -42,7 +42,6 @@
 }
 
 .given {
-  font-weight: 700;
   color: var(--cell-given, #10151d);
 }
 .editable {

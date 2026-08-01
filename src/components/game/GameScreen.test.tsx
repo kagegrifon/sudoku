@@ -107,14 +107,16 @@ describe('GameScreen', () => {
     renderScreen();
     fireEvent.click(screen.getByTestId('notes-toggle'));
     fireEvent.click(screen.getByTestId('cell-0-0'));
-    fireEvent.click(screen.getByTestId('digit-4'));
+    // 3 ещё не расставлена полностью (дыра в [0][1]), поэтому доступна для ввода.
+    fireEvent.click(screen.getByTestId('digit-3'));
     expect(screen.getByTestId('notes-0-0')).toBeTruthy();
   });
 
   it('ошибка снижает число жизней (одно сердце гаснет)', () => {
     renderScreen();
     fireEvent.click(screen.getByTestId('cell-0-0'));
-    fireEvent.click(screen.getByTestId('digit-1')); // неверно (solution 5)
+    // 3 доступна (дыра в [0][1]), но для клетки [0][0] неверна (solution 5).
+    fireEvent.click(screen.getByTestId('digit-3'));
     // Три слота, одно должно стать пустым ♡.
     expect(screen.getByTestId('lives').textContent).toContain('♡');
   });

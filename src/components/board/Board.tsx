@@ -10,6 +10,8 @@ export interface BoardProps {
   cellIsGiven(row: number, col: number): boolean;
   onSelectCell(args: { row: number; col: number }): void;
   notes?: number[][][];
+  /** Цифры с девятью верными вхождениями: их пометки в клетках не показываем. */
+  completedDigits?: ReadonlySet<number>;
   mistakes?: boolean[][];
   highlightSameDigits?: boolean;
   highlightPeers?: boolean;
@@ -25,6 +27,7 @@ export default function Board({
   cellIsGiven,
   onSelectCell,
   notes,
+  completedDigits,
   mistakes,
   highlightSameDigits,
   highlightPeers,
@@ -52,6 +55,7 @@ export default function Board({
               given={cellIsGiven(row, col)}
               highlight={highlight}
               notes={notes?.[row]?.[col]}
+              completedDigits={completedDigits}
               onSelect={onSelectCell}
             />
           );
