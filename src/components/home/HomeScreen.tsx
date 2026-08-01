@@ -9,7 +9,7 @@ import styles from './HomeScreen.module.css';
 
 // Файл из public/ — Vite не импортирует его как модуль, поэтому путь собираем
 // вручную от BASE_URL (на GitHub Pages приложение живёт в подкаталоге /sudoku/).
-const ICON_URL = `${import.meta.env.BASE_URL}icons/icon-rounded-512.png`;
+const ICON_URL = `${import.meta.env.BASE_URL}icons/icon-rounded-512.webp`;
 
 const TOTAL_CELLS = GRID_SIZE * GRID_SIZE;
 
