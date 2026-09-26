@@ -97,4 +97,17 @@ describe('HomeScreen', () => {
       expect(screen.getByTestId('current-screen').textContent).toBe('game');
     });
   });
+
+  it('карточка профиля: уровень 1 и Новичок при пустом журнале', async () => {
+    renderHome();
+    const profile = await screen.findByTestId('home-profile');
+    expect(profile).toHaveTextContent('Уровень 1');
+    expect(screen.getByTestId('rank-name')).toHaveTextContent('Новичок');
+  });
+
+  it('тап по карточке профиля ведёт в статистику', () => {
+    renderHome();
+    fireEvent.click(screen.getByTestId('home-profile'));
+    expect(screen.getByTestId('current-screen')).toHaveTextContent('stats');
+  });
 });

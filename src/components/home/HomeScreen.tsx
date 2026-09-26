@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { useAppView } from '../../state/AppContext';
 import { useGame } from '../../state/GameContext';
+import { useRecords } from '../../state/RecordsContext';
 import { EMPTY_CELL, GRID_SIZE, type Difficulty } from '../../core';
 import { formatTime } from '../header/formatTime';
 import { DIFFICULTY_LABELS } from '../difficultyLabels';
 import DifficultyPicker from '../difficulty/DifficultyPicker';
+import LevelProgress from '../rank/LevelProgress';
+import { homeProfileCaption } from '../rank/progressCaptions';
 import styles from './HomeScreen.module.css';
 
 // Файл из public/ — Vite не импортирует его как модуль, поэтому путь собираем
@@ -60,6 +63,7 @@ function ContinueCard({ difficulty, elapsedSeconds, filledCells, onContinue }: C
 export default function HomeScreen() {
   const { navigate } = useAppView();
   const game = useGame();
+  const { totalScore } = useRecords();
   const [pickerOpen, setPickerOpen] = useState(false);
 
   // «Продолжить» показываем, когда есть активная партия — идущая или на паузе.
@@ -79,6 +83,15 @@ export default function HomeScreen() {
         <img src={ICON_URL} alt="Судоку" className={styles.logo} />
         <div className={styles.title}>Судоку</div>
       </div>
+
+      <button
+        type="button"
+        className={styles.profileCard}
+        data-testid="home-profile"
+        onClick={() => navigate('stats')}
+      >
+        <LevelProgress totalScore={totalScore} caption={homeProfileCaption(totalScore)} />
+      </button>
 
       <div className={styles.spacer} />
 

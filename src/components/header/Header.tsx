@@ -3,6 +3,7 @@ import { useAppView } from '../../state/AppContext';
 import { INITIAL_LIVES } from '../../state/gameTypes';
 import { DIFFICULTY_LABELS } from '../difficultyLabels';
 import { formatTime } from './formatTime';
+import ScoreDisplay from './ScoreDisplay';
 import styles from './Header.module.css';
 
 const HEART_SLOTS = Array.from({ length: INITIAL_LIVES }, (_, index) => index);
@@ -32,6 +33,8 @@ export default function Header() {
         >
           ‹
         </button>
+        <ScoreDisplay />
+
         <button
           type="button"
           className={styles.iconButton}

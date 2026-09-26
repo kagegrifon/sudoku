@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createIdleGameState, createInitialGameState, gameReducer, isGiven } from './gameReducer';
+import {
+  createIdleGameState,
+  createInitialGameState,
+  createInitialScoreFields,
+  gameReducer,
+  isGiven,
+} from './gameReducer';
 import { GAME_SCHEMA_VERSION, INITIAL_LIVES, type GameState } from './gameTypes';
 import * as core from '../core';
 import type { Grid } from '../core';
@@ -163,7 +169,8 @@ describe('RESTORE', () => {
     const state = createInitialGameState('easy');
     const saved: GameState = { ...createInitialGameState('medium'), elapsedSeconds: 42 };
     const next = gameReducer(state, { type: 'RESTORE', state: saved });
-    expect(next).toBe(saved);
+    // Не toBe: RESTORE теперь возвращает новый объект — сбрасывает lastScoreEvent (см. describe «очки — RESTORE»).
+    expect(next).toStrictEqual(saved);
     expect(next.elapsedSeconds).toBe(42);
   });
 });
@@ -366,5 +373,153 @@ describe('gameReducer — пауза', () => {
     state = gameReducer(state, { type: 'PAUSE' });
     const ticked = gameReducer(state, { type: 'TICK' });
     expect(ticked.elapsedSeconds).toBe(0);
+  });
+});
+
+// Четыре дыры в левом верхнем квадрате: (0,0)=5, (0,1)=3, (1,0)=6, (1,1)=7.
+// Порядок (0,0) → (0,1) → (1,0) → (1,1) даёт множители ×1, ×5, ×5, ×15.
+function puzzleWithTopLeftHoles(): Grid {
+  const puzzle = solved.map((row) => [...row]);
+  puzzle[0][0] = 0;
+  puzzle[0][1] = 0;
+  puzzle[1][0] = 0;
+  puzzle[1][1] = 0;
+  return puzzle;
+}
+
+function startScoringGame(elapsedSeconds = 0): GameState {
+  mockPuzzle(puzzleWithTopLeftHoles());
+  return { ...createInitialGameState('easy'), elapsedSeconds };
+}
+
+function place(state: GameState, target: { row: number; col: number; value: number }): GameState {
+  return gameReducer(state, { type: 'PLACE_DIGIT', ...target });
+}
+
+describe('очки — инициализация', () => {
+  it('новая партия: счёт 0, клетки не оплачены, события нет', () => {
+    const state = createInitialGameState('easy');
+    expect(state.score).toBe(0);
+    expect(state.lastCorrectAtSecond).toBe(0);
+    expect(state.scoredCells.flat().every((scored) => !scored)).toBe(true);
+    expect(state.lastScoreEvent).toBeNull();
+  });
+
+  it('NEW_GAME обнуляет очки прошлой партии', () => {
+    const played = { ...startScoringGame(), score: 999, lastCorrectAtSecond: 40 };
+    const next = gameReducer(played, { type: 'NEW_GAME', difficulty: 'easy' });
+    expect(next.score).toBe(0);
+    expect(next.lastCorrectAtSecond).toBe(0);
+    expect(next.lastScoreEvent).toBeNull();
+  });
+
+  it('createInitialScoreFields — сетка 9×9 из false', () => {
+    const fields = createInitialScoreFields();
+    expect(fields.scoredCells).toHaveLength(9);
+    expect(fields.scoredCells.every((row) => row.length === 9)).toBe(true);
+  });
+});
+
+describe('очки — верная цифра', () => {
+  it('начисляет стоимость клетки с учётом времени и пишет событие', () => {
+    const state = place(startScoringGame(12), { row: 0, col: 0, value: 5 });
+    // easy: 50 − 5 × floor(12 / 5) = 40, ×1
+    expect(state.score).toBe(40);
+    expect(state.lastCorrectAtSecond).toBe(12);
+    expect(state.scoredCells[0][0]).toBe(true);
+    expect(state.lastScoreEvent).toEqual({
+      id: 1,
+      row: 0,
+      col: 0,
+      delta: 40,
+      multiplier: 1,
+      closedUnits: { row: false, col: false, box: false },
+    });
+  });
+
+  it('множители ×5 и ×15 за закрытые юниты, id события растёт', () => {
+    let state = place(startScoringGame(), { row: 0, col: 0, value: 5 }); // +50
+    state = place(state, { row: 0, col: 1, value: 3 }); // строка 0 → ×5 = +250
+    expect(state.lastScoreEvent).toMatchObject({ id: 2, multiplier: 5, delta: 250 });
+    state = place(state, { row: 1, col: 0, value: 6 }); // столбец 0 → ×5 = +250
+    state = place(state, { row: 1, col: 1, value: 7 }); // строка, столбец, квадрат → ×15 = +750
+    expect(state.lastScoreEvent).toMatchObject({
+      id: 4,
+      multiplier: 15,
+      delta: 750,
+      closedUnits: { row: true, col: true, box: true },
+    });
+    expect(state.score).toBe(50 + 250 + 250 + 750);
+    expect(state.result).toBe('won');
+  });
+
+  it('dt считается от последней оплаченной цифры', () => {
+    let state = place(startScoringGame(10), { row: 0, col: 0, value: 5 });
+    state = { ...state, elapsedSeconds: 16 }; // dt = 6 → 50 − 5 = 45, ×5
+    state = place(state, { row: 0, col: 1, value: 3 });
+    expect(state.lastScoreEvent?.delta).toBe(225);
+  });
+});
+
+describe('очки — анти-фарм', () => {
+  it('стереть верную цифру и поставить снова — 0 очков, событие и таймер не меняются', () => {
+    const scored = place(startScoringGame(5), { row: 0, col: 0, value: 5 });
+    const erased = gameReducer({ ...scored, elapsedSeconds: 30 }, { type: 'ERASE', row: 0, col: 0 });
+    const replaced = place(erased, { row: 0, col: 0, value: 5 });
+    expect(replaced.score).toBe(scored.score);
+    expect(replaced.lastCorrectAtSecond).toBe(5);
+    expect(replaced.lastScoreEvent).toBe(scored.lastScoreEvent);
+  });
+
+  it('undo не возвращает и не отнимает очки; повторная постановка — 0', () => {
+    const scored = place(startScoringGame(), { row: 0, col: 0, value: 5 });
+    const undone = gameReducer(scored, { type: 'UNDO' });
+    expect(undone.score).toBe(scored.score);
+    const replaced = place(undone, { row: 0, col: 0, value: 5 });
+    expect(replaced.score).toBe(scored.score);
+  });
+});
+
+describe('очки — ошибка', () => {
+  it('штрафует на base и не сбрасывает lastCorrectAtSecond', () => {
+    const scored = { ...place(startScoringGame(7), { row: 0, col: 0, value: 5 }), score: 120 };
+    const state = place({ ...scored, elapsedSeconds: 20 }, { row: 0, col: 1, value: 9 });
+    expect(state.score).toBe(70);
+    expect(state.lastCorrectAtSecond).toBe(7);
+    expect(state.lastScoreEvent).toMatchObject({ row: 0, col: 1, delta: -50, multiplier: 1 });
+  });
+
+  it('счёт не уходит ниже 0: штраф фактический', () => {
+    const state = place({ ...startScoringGame(), score: 20 }, { row: 0, col: 0, value: 9 });
+    expect(state.score).toBe(0);
+    expect(state.lastScoreEvent?.delta).toBe(-20);
+  });
+
+  it('при счёте 0 событие не создаётся (штрафовать нечего)', () => {
+    const state = place(startScoringGame(), { row: 0, col: 0, value: 9 });
+    expect(state.score).toBe(0);
+    expect(state.lastScoreEvent).toBeNull();
+    expect(state.lives).toBe(INITIAL_LIVES - 1);
+  });
+
+  it('повторная ошибка в той же клетке штрафуется снова', () => {
+    let state = { ...startScoringGame(), score: 200 };
+    state = place(state, { row: 0, col: 0, value: 9 });
+    state = place(state, { row: 0, col: 0, value: 8 });
+    expect(state.score).toBe(100);
+  });
+
+  it('undo ошибки не возвращает очки', () => {
+    const penalized = place({ ...startScoringGame(), score: 200 }, { row: 0, col: 0, value: 9 });
+    expect(gameReducer(penalized, { type: 'UNDO' }).score).toBe(150);
+  });
+});
+
+describe('очки — RESTORE', () => {
+  it('сбрасывает lastScoreEvent, чтобы всплывашка не проигралась повторно', () => {
+    const scored = place(startScoringGame(), { row: 0, col: 0, value: 5 });
+    const restored = gameReducer(createIdleGameState('easy'), { type: 'RESTORE', state: scored });
+    expect(restored.lastScoreEvent).toBeNull();
+    expect(restored.score).toBe(scored.score);
   });
 });

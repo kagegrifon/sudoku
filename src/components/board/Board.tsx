@@ -1,5 +1,9 @@
+import { Fragment } from 'react';
 import { GRID_SIZE, type Grid } from '../../core';
+import type { ScoreEvent } from '../../state/gameTypes';
 import Cell from './Cell';
+import ClosedUnitsFlash from './ClosedUnitsFlash';
+import ScorePopup from './ScorePopup';
 import { computeHighlight, type CellPosition } from './cellHighlight';
 import styles from './Board.module.css';
 
@@ -15,6 +19,8 @@ export interface BoardProps {
   mistakes?: boolean[][];
   highlightSameDigits?: boolean;
   highlightPeers?: boolean;
+  /** Последнее изменение счёта — всплывашка над клеткой; null/undefined — не показывать. */
+  scoreEvent?: ScoreEvent | null;
 }
 
 const ROW_INDICES = Array.from({ length: GRID_SIZE }, (_, index) => index);
@@ -31,6 +37,7 @@ export default function Board({
   mistakes,
   highlightSameDigits,
   highlightPeers,
+  scoreEvent,
 }: BoardProps) {
   return (
     <div className={styles.board} data-testid="board" role="grid">
@@ -60,6 +67,13 @@ export default function Board({
             />
           );
         }),
+      )}
+      {/* Слой очков идёт ПОСЛЕ 81 клетки — nth-child границ блоков не сдвигается. */}
+      {scoreEvent && (
+        <Fragment key={scoreEvent.id}>
+          <ClosedUnitsFlash event={scoreEvent} />
+          <ScorePopup event={scoreEvent} />
+        </Fragment>
       )}
     </div>
   );

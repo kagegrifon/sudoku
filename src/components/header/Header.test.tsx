@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 import { useEffect, useRef } from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, act } from '@testing-library/react';
 import Header from './Header';
-import { GameProvider, useGame } from '../../state/GameContext';
+import { GameProvider, useGame, type GameApi } from '../../state/GameContext';
 import { SettingsProvider } from '../../state/SettingsContext';
 import { RecordsProvider } from '../../state/RecordsContext';
 import { AppProvider, useAppView } from '../../state/AppContext';
@@ -73,6 +73,34 @@ function renderHeader() {
   );
 }
 
+/** Кладёт живой GameApi в ref, чтобы тест мог управлять игрой императивно. */
+function ApiProbe({ apiRef }: { apiRef: { current: GameApi | null } }) {
+  const game = useGame();
+  useEffect(() => {
+    apiRef.current = game;
+  });
+  return null;
+}
+
+/** Рендерит Header с провайдерами и стартует партию easy; возвращает ref с GameApi. */
+function renderHeaderWithGame(): { current: GameApi | null } {
+  const apiRef: { current: GameApi | null } = { current: null };
+  render(
+    <AppProvider>
+      <SettingsProvider>
+        <RecordsProvider>
+          <GameProvider>
+            <GameStarter />
+            <ApiProbe apiRef={apiRef} />
+            <Header />
+          </GameProvider>
+        </RecordsProvider>
+      </SettingsProvider>
+    </AppProvider>,
+  );
+  return apiRef;
+}
+
 describe('Header', () => {
   it('показывает стартовый таймер 00:00', () => {
     renderHeader();
@@ -96,5 +124,24 @@ describe('Header', () => {
   it('кнопка паузы присутствует и активна для идущей партии', () => {
     renderHeader();
     expect(screen.getByTestId('pause')).not.toBeDisabled();
+  });
+});
+
+describe('Header — счёт партии', () => {
+  it('показывает 0 в начале партии', () => {
+    renderHeaderWithGame();
+    expect(screen.getByTestId('game-score')).toHaveTextContent('0');
+  });
+
+  it('после верной цифры счёт набегает до начисленного', () => {
+    vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame', 'performance'] });
+    try {
+      const apiRef = renderHeaderWithGame();
+      act(() => apiRef.current!.inputDigit({ row: 0, col: 0, value: 5 })); // единственная дыра: ×15 = 750
+      act(() => vi.advanceTimersByTime(600));
+      expect(screen.getByTestId('game-score')).toHaveTextContent('750');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

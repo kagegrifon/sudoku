@@ -120,6 +120,9 @@ export default function SettingsScreen() {
           >
             Сбросить статистику
           </button>
+          <div className={styles.resetHint} data-testid="reset-stats-hint">
+            Вместе со статистикой сбросятся очки, уровень и ранг
+          </div>
         </div>
       </div>
     </div>

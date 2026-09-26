@@ -144,6 +144,26 @@ describe('GameContext', () => {
     // Восстановлено значение 4, а не сгенерированная пустая клетка.
     expect(screen.getByTestId('cell00').textContent).toBe('4');
   });
+
+  it('мягко мигрирует старую сохранёнку без полей очков', () => {
+    const saved = {
+      schemaVersion: GAME_SCHEMA_VERSION,
+      puzzleId: 'restored-legacy',
+      difficulty: 'easy',
+      initialGrid: puzzleOneHole(),
+      currentGrid: puzzleOneHole(),
+      solution: solved,
+      notes: Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => [] as number[])),
+      history: [],
+      lives: 2,
+      elapsedSeconds: 33,
+      startedAt: '2026-07-03T00:00:00.000Z',
+      status: 'in_progress',
+    };
+    localStorage.setItem(GAME_STORAGE_KEY, JSON.stringify(saved));
+    const api = renderGameApi();
+    expect(api.current!.state.score).toBe(0);
+  });
 });
 
 /** Кладёт живой GameApi в ref, чтобы тест мог управлять игрой императивно. */
@@ -272,5 +292,46 @@ describe('GameProvider — запись CompletedGame', () => {
     await waitFor(() => {}, { timeout: 50 }).catch(() => {});
     const calls = vi.mocked(historyDb.recordCompletedGame).mock.calls;
     expect(calls.some((call) => call[0].outcome === 'abandoned')).toBe(false);
+  });
+
+  it('победа пишет score партии', async () => {
+    const api = renderGameApi();
+    startGame(api);
+    fillFromSolution(api);
+    await waitFor(() => {
+      expect(vi.mocked(historyDb.recordCompletedGame)).toHaveBeenCalledTimes(1);
+    });
+    expect(vi.mocked(historyDb.recordCompletedGame).mock.calls[0][0]).toMatchObject({
+      outcome: 'won',
+      score: 750,
+    });
+    expect(api.current!.completion).toMatchObject({
+      isNewScoreRecord: true,
+      prevTotalScore: 0,
+      nextTotalScore: 750,
+    });
+  });
+
+  it('поражение пишет score: 0 — очки сгорают', async () => {
+    const api = renderGameApi();
+    startGame(api);
+    loseAllLives(api);
+    await waitFor(() => {
+      const calls = vi.mocked(historyDb.recordCompletedGame).mock.calls;
+      expect(calls.some((call) => call[0].outcome === 'lost' && call[0].score === 0)).toBe(true);
+    });
+  });
+
+  it('брошенная партия пишет score: 0', async () => {
+    const api = renderGameApi();
+    startGame(api);
+    makeOneMove(api);
+    startGame(api);
+    await waitFor(() => {
+      const calls = vi.mocked(historyDb.recordCompletedGame).mock.calls;
+      expect(calls.some((call) => call[0].outcome === 'abandoned' && call[0].score === 0)).toBe(
+        true,
+      );
+    });
   });
 });
