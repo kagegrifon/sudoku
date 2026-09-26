@@ -11,24 +11,39 @@ import {
 import type { Difficulty } from '../core';
 import { getAllCompletedGames } from './storage/historyDb';
 import { bestTimesByDifficulty } from './statsService';
+import { bestScoresByDifficulty, totalScore, type ScoreRecordsByDifficulty } from './progress';
 
 export type RecordsByDifficulty = Record<Difficulty, number | null>;
 
-const EMPTY_RECORDS: RecordsByDifficulty = { easy: null, medium: null, hard: null };
-
-export interface RecordsApi {
+/** Агрегаты журнала — единственный контекст, который их считает. */
+interface JournalAggregates {
   records: RecordsByDifficulty;
+  bestScores: ScoreRecordsByDifficulty;
+  totalScore: number;
+}
+
+const EMPTY_AGGREGATES: JournalAggregates = {
+  records: { easy: null, medium: null, hard: null },
+  bestScores: { easy: null, medium: null, hard: null },
+  totalScore: 0,
+};
+
+export interface RecordsApi extends JournalAggregates {
   refresh(): Promise<void>;
 }
 
 const RecordsContext = createContext<RecordsApi | null>(null);
 
 export function RecordsProvider({ children }: { children: ReactNode }) {
-  const [records, setRecords] = useState<RecordsByDifficulty>(EMPTY_RECORDS);
+  const [aggregates, setAggregates] = useState<JournalAggregates>(EMPTY_AGGREGATES);
 
   const refresh = useCallback(async () => {
     const games = await getAllCompletedGames();
-    setRecords(bestTimesByDifficulty(games));
+    setAggregates({
+      records: bestTimesByDifficulty(games),
+      bestScores: bestScoresByDifficulty(games),
+      totalScore: totalScore(games),
+    });
   }, []);
 
   useEffect(() => {
@@ -38,7 +53,7 @@ export function RecordsProvider({ children }: { children: ReactNode }) {
     void refresh();
   }, [refresh]);
 
-  const api = useMemo<RecordsApi>(() => ({ records, refresh }), [records, refresh]);
+  const api = useMemo<RecordsApi>(() => ({ ...aggregates, refresh }), [aggregates, refresh]);
 
   return <RecordsContext.Provider value={api}>{children}</RecordsContext.Provider>;
 }
