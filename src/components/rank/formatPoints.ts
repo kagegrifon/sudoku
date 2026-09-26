@@ -1,5 +1,5 @@
 const THOUSANDS_GROUP = /\B(?=(\d{3})+(?!\d))/g;
-const NARROW_GAP = ' ';
+const NARROW_GAP = ' '; // неразрывный пробел — число не переносится на узких экранах
 
 /** 21640 → «21 640» (неразрывный пробел — число не переносится). */
 export function formatPoints(points: number): string {

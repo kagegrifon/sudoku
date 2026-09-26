@@ -5,8 +5,8 @@ describe('formatPoints', () => {
   it.each([
     { points: 0, expected: '0' },
     { points: 750, expected: '750' },
-    { points: 21640, expected: '21 640' },
-    { points: 1234567, expected: '1 234 567' },
+    { points: 21640, expected: '21 640' },
+    { points: 1234567, expected: '1 234 567' },
   ])('$points → $expected', ({ points, expected }) => {
     expect(formatPoints(points)).toBe(expected);
   });
