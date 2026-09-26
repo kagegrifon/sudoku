@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, act } from '@testing-library/react';
 import WinScreen from './WinScreen';
 
 afterEach(cleanup);
@@ -42,5 +42,81 @@ describe('WinScreen', () => {
     fireEvent.click(screen.getByTestId('win-home'));
     expect(onNewGame).toHaveBeenCalledTimes(1);
     expect(onHome).toHaveBeenCalledTimes(1);
+  });
+});
+
+function stubReducedMotion(matches: boolean) {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn().mockReturnValue({ matches, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
+  );
+}
+
+const firstWin = { score: 750, prevTotalScore: 4500, nextTotalScore: 5250, isNewScoreRecord: true };
+
+describe('WinScreen — очки и прогресс', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  it('reduced-motion: сразу итоговые очки, уровень и бейдж рекорда очков', () => {
+    stubReducedMotion(true);
+    render(<WinScreen {...baseProps} result="won" scoreSummary={firstWin} />);
+    expect(screen.getByTestId('win-score')).toHaveTextContent('750');
+    expect(screen.getByTestId('level-number')).toHaveTextContent('Уровень 2');
+    expect(screen.getByTestId('score-record-badge')).toHaveTextContent('★ Рекорд очков');
+  });
+
+  it('тап по карточке — сразу финальное состояние', () => {
+    render(<WinScreen {...baseProps} result="won" scoreSummary={firstWin} />);
+    fireEvent.click(screen.getByTestId('win-screen-won'));
+    expect(screen.getByTestId('win-score')).toHaveTextContent('750');
+    expect(screen.getByTestId('level-number')).toHaveTextContent('Уровень 2');
+  });
+
+  it('смена ранга: строка «Новый ранг» и новый значок', () => {
+    render(
+      <WinScreen
+        {...baseProps}
+        result="won"
+        scoreSummary={{ score: 1500, prevTotalScore: 14000, nextTotalScore: 15500, isNewScoreRecord: false }}
+      />,
+    );
+    fireEvent.click(screen.getByTestId('win-screen-won'));
+    expect(screen.getByTestId('new-rank')).toHaveTextContent('Новый ранг: Ученик');
+    expect(screen.getByTestId('rank-name')).toHaveTextContent('Ученик');
+    expect(screen.getByTestId('rank-badge')).toHaveAttribute('data-rank', 'apprentice');
+    expect(screen.queryByTestId('score-record-badge')).toBeNull();
+  });
+
+  it('без смены ранга строки нового ранга нет', () => {
+    render(<WinScreen {...baseProps} result="won" scoreSummary={firstWin} />);
+    fireEvent.click(screen.getByTestId('win-screen-won'));
+    expect(screen.queryByTestId('new-rank')).toBeNull();
+  });
+
+  it('поражение: счёт зачёркнут с подписью, прогресс по старому балансу', () => {
+    render(
+      <WinScreen
+        {...baseProps}
+        result="lost"
+        scoreSummary={{ score: 900, prevTotalScore: 89810, nextTotalScore: 89810, isNewScoreRecord: false }}
+      />,
+    );
+    expect(screen.getByTestId('win-score-burned')).toHaveTextContent('900');
+    expect(screen.getByTestId('win-screen')).toHaveTextContent('Очки сгорают при поражении');
+    expect(screen.queryByTestId('win-score')).toBeNull();
+    expect(screen.getByTestId('level-number')).toHaveTextContent('Уровень 6');
+  });
+
+  it('полная анимация по таймерам доходит до финала', () => {
+    vi.useFakeTimers();
+    // canvas в jsdom не реализован — getContext отдаёт null, движок просто не рисует.
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
+    render(<WinScreen {...baseProps} result="won" scoreSummary={firstWin} />);
+    act(() => vi.advanceTimersByTime(10_000));
+    expect(screen.getByTestId('level-number')).toHaveTextContent('Уровень 2');
+    expect(screen.getByTestId('win-score')).toHaveTextContent('750');
   });
 });

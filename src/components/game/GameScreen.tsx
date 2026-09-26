@@ -51,6 +51,16 @@ export default function GameScreen() {
   const winResult = game.won ? 'won' : 'lost';
   const boardAreaClass = paused ? styles.boardAreaBlurred : styles.boardArea;
 
+  const scoreSummary = {
+    score: game.state.score,
+    prevTotalScore: game.completion.prevTotalScore,
+    nextTotalScore: game.completion.nextTotalScore,
+    isNewScoreRecord: game.completion.isNewScoreRecord,
+  };
+  // Итоги считаются в эффекте после перехода в completed, поэтому первый кадр WinScreen видит
+  // NO_COMPLETION. Ключ пересоздаёт экран, когда итоги приходят, — анимация стартует с верного баланса.
+  const winScreenKey = `${scoreSummary.prevTotalScore}:${scoreSummary.nextTotalScore}`;
+
   return (
     <div className={styles.screen}>
       <Header />
@@ -106,11 +116,13 @@ export default function GameScreen() {
 
       {gameOver && (
         <WinScreen
+          key={winScreenKey}
           result={winResult}
           elapsedSeconds={game.state.elapsedSeconds}
           difficulty={game.state.difficulty}
           livesLeft={game.state.lives}
           isNewRecord={game.isNewRecord}
+          scoreSummary={scoreSummary}
           onNewGame={restartGame}
           onHome={leaveToHomeFromResult}
         />

@@ -63,7 +63,150 @@
   font-weight: 600;
   padding: 6px 12px;
   border-radius: 20px;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
   margin-top: 16px;
+}
+
+.badges:empty {
+  display: none;
+}
+
+.hidden {
+  opacity: 0;
+}
+
+.recordBadge,
+.progress {
+  transition: opacity 250ms ease-out;
+}
+
+.scoreBlock {
+  margin-top: 18px;
+}
+
+.scoreLabel {
+  font-size: 12px;
+  color: var(--ink-subtle);
+}
+
+.scoreValue,
+.scoreBurned {
+  font-size: 40px;
+  font-weight: 800;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.scorePop {
+  animation: pop 350ms ease-out;
+}
+
+.scoreBurned {
+  color: var(--ink-faint);
+  text-decoration: line-through;
+}
+
+.scoreBurnedNote {
+  font-size: 12px;
+  color: var(--score-loss);
+  margin-top: 2px;
+}
+
+.progress {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  padding: 16px;
+  margin-top: 18px;
+  box-shadow: var(--shadow-card);
+  text-align: left;
+}
+
+.progressHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.progressTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.progressRank {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-subtle);
+}
+
+.barTrack {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--divider);
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--accent);
+}
+
+.barFlash {
+  animation: bar-flash 350ms ease-out;
+}
+
+.progressCaption {
+  font-size: 12px;
+  color: var(--ink-subtle);
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.newRank {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--score-combo);
+}
+
+.levelPop {
+  display: inline-block;
+  animation: pop 350ms ease-out;
+}
+
+.rankSwap {
+  animation: rank-swap 700ms ease-in-out;
+}
+
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+@keyframes bar-flash {
+  0% { filter: brightness(1); }
+  40% { filter: brightness(1.8); box-shadow: 0 0 12px var(--accent); }
+  100% { filter: brightness(1); }
+}
+
+/* Глиф подменяется на 280-й мс (40% от 700) — в момент минимального масштаба. */
+@keyframes rank-swap {
+  0% { transform: scale(1); filter: drop-shadow(0 0 0 transparent); }
+  40% { transform: scale(0.6); }
+  70% { transform: scale(1.2); filter: drop-shadow(0 0 10px #fff); }
+  100% { transform: scale(1); filter: drop-shadow(0 0 0 transparent); }
 }
 
 .stats {
