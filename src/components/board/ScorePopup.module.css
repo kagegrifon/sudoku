@@ -1,0 +1,50 @@
+.popup {
+  position: absolute;
+  transform: translate(-50%, -30%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-weight: 700;
+  font-size: 16px;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 2;
+  animation: float-up 900ms ease-out forwards;
+}
+
+.gain {
+  color: var(--score-gain);
+}
+
+.loss {
+  color: var(--score-loss);
+}
+
+.combo {
+  color: var(--score-combo);
+  animation-duration: 1200ms;
+}
+
+.multiplier {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.flash {
+  position: absolute;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--score-combo) 30%, transparent);
+  animation: flash 700ms ease-out forwards;
+}
+
+@keyframes float-up {
+  0% { opacity: 0; transform: translate(-50%, -10%); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -160%); }
+}
+
+@keyframes flash {
+  0% { opacity: 0; }
+  30% { opacity: 1; }
+  100% { opacity: 0; }
+}

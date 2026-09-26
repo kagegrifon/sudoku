@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useGame } from '../../state/GameContext';
 import { useAppView } from '../../state/AppContext';
 import { useSettings } from '../../state/SettingsContext';
+import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 import Board from '../board/Board';
 import type { CellPosition } from '../board/cellHighlight';
 import NumberPad from '../numberpad/NumberPad';
@@ -16,6 +17,9 @@ export default function GameScreen() {
   const { navigate } = useAppView();
   const { settings } = useSettings();
   const [selected, setSelected] = useState<CellPosition | null>(null);
+  const reducedMotion = usePrefersReducedMotion();
+  // При reduced-motion всплывашки не показываем — остаётся только смена числа в шапке.
+  const scoreEvent = reducedMotion ? null : game.state.lastScoreEvent;
 
   const selectCell = ({ row, col }: CellPosition) => setSelected({ row, col });
 
@@ -63,6 +67,7 @@ export default function GameScreen() {
           onSelectCell={selectCell}
           highlightSameDigits={settings.highlightSameDigits}
           highlightPeers={settings.highlightPeers}
+          scoreEvent={scoreEvent}
         />
       </div>
 
