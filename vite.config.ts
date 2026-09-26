@@ -18,7 +18,13 @@ export default defineConfig(({ mode }) => ({
     react(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['icons/apple-touch-icon.png'],
+      // Ассеты вне manifest.icons Workbox сам не прекеширует — без явного перечисления
+      // они грузятся по сети при каждом запуске и недоступны офлайн.
+      includeAssets: [
+        'icons/apple-touch-icon.png',
+        'icons/icon-rounded-512.webp',
+        'favicon.svg',
+      ],
       manifest: {
         name: 'Судоку',
         short_name: 'Судоку',
