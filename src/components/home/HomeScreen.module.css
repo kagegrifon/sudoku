@@ -34,6 +34,19 @@
   flex: 1;
 }
 
+.profileCard {
+  width: 100%;
+  border: 1px solid var(--card-border);
+  background: var(--card);
+  border-radius: 20px;
+  padding: 16px;
+  margin-top: 20px;
+  box-shadow: var(--shadow-card);
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .continueCard {
   display: flex;
   flex-direction: column;

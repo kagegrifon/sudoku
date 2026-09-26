@@ -124,4 +124,11 @@ describe('SettingsScreen', () => {
       expect(vi.mocked(historyDb.clearAllCompletedGames)).toHaveBeenCalledTimes(1);
     });
   });
+
+  it('рядом со сбросом предупреждение, что сбросятся очки, уровень и ранг', () => {
+    renderSettings();
+    expect(screen.getByTestId('reset-stats-hint')).toHaveTextContent(
+      'Вместе со статистикой сбросятся очки, уровень и ранг',
+    );
+  });
 });

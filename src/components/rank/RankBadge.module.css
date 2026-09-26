@@ -1,0 +1,20 @@
+.badge {
+  width: var(--badge-size);
+  height: var(--badge-size);
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--rank-color) 80%, #fff),
+    var(--rank-color)
+  );
+  box-shadow: 0 8px 18px -8px var(--rank-color);
+}
+
+.glyph {
+  width: 58%;
+  height: 58%;
+}

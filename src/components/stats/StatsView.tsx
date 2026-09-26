@@ -3,8 +3,12 @@ import type { Difficulty } from '../../core';
 import { useAppView } from '../../state/AppContext';
 import { getAllCompletedGames, type CompletedGame } from '../../state/storage/historyDb';
 import { filterByPeriod, computeStats, type StatsPeriod } from '../../state/statsService';
+import { bestScoresByDifficulty, totalScore } from '../../state/progress';
 import { DIFFICULTY_LABELS, DIFFICULTY_COLORS } from '../difficultyLabels';
 import { formatTime } from '../header/formatTime';
+import LevelProgress from '../rank/LevelProgress';
+import { formatPoints, pointsWord } from '../rank/formatPoints';
+import { statsProgressCaption } from '../rank/progressCaptions';
 import styles from './StatsView.module.css';
 
 const PERIODS: Array<{ id: StatsPeriod; label: string }> = [
@@ -19,6 +23,11 @@ const DIFFICULTIES: Difficulty[] = ['easy', 'medium', 'hard'];
 function formatSeconds(seconds: number | null): string {
   if (seconds === null) return '—';
   return formatTime(seconds);
+}
+
+function formatBestScore(score: number | null): string {
+  if (score === null) return '—';
+  return `★ ${formatPoints(score)} ${pointsWord(score)}`;
 }
 
 function formatPercent(rate: number): string {
@@ -52,9 +61,10 @@ interface DifficultyRowProps {
   difficulty: Difficulty;
   wins: number;
   bestTimeSeconds: number | null;
+  bestScore: number | null;
 }
 
-function DifficultyRow({ difficulty, wins, bestTimeSeconds }: DifficultyRowProps) {
+function DifficultyRow({ difficulty, wins, bestTimeSeconds, bestScore }: DifficultyRowProps) {
   return (
     <div className={styles.diffRow}>
       <div className={styles.diffLeft}>
@@ -64,6 +74,9 @@ function DifficultyRow({ difficulty, wins, bestTimeSeconds }: DifficultyRowProps
       <div className={styles.diffRight}>
         <div className={styles.diffBest} data-testid={`stat-diff-${difficulty}-best`}>
           {formatSeconds(bestTimeSeconds)}
+        </div>
+        <div className={styles.diffBestScore} data-testid={`stat-diff-${difficulty}-best-score`}>
+          {formatBestScore(bestScore)}
         </div>
         <div className={styles.diffWins} data-testid={`stat-diff-${difficulty}-wins`}>
           {wins} побед
@@ -109,10 +122,16 @@ export default function StatsView() {
     };
   }, []);
 
-  const { stats, totalGames } = useMemo(() => {
+  const { stats, totalGames, bestScores } = useMemo(() => {
     const filtered = filterByPeriod(games, period, new Date());
-    return { stats: computeStats(filtered), totalGames: filtered.length };
+    return {
+      stats: computeStats(filtered),
+      totalGames: filtered.length,
+      bestScores: bestScoresByDifficulty(filtered),
+    };
   }, [games, period]);
+  // Баланс и уровень не зависят от выбранного периода.
+  const balance = useMemo(() => totalScore(games), [games]);
 
   return (
     <div className={styles.screen} data-testid="stats-view">
@@ -121,6 +140,10 @@ export default function StatsView() {
           ‹
         </button>
         <h1 className={styles.title}>Статистика</h1>
+      </div>
+
+      <div className={styles.progressCard} data-testid="stats-progress">
+        <LevelProgress totalScore={balance} caption={statsProgressCaption(balance)} />
       </div>
 
       <div className={styles.periods}>
@@ -165,6 +188,7 @@ export default function StatsView() {
             difficulty={difficulty}
             wins={stats.byDifficulty[difficulty].completedCount}
             bestTimeSeconds={stats.byDifficulty[difficulty].bestTimeSeconds}
+            bestScore={bestScores[difficulty]}
           />
         ))}
       </div>
