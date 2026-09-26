@@ -1,4 +1,5 @@
 import type { Difficulty, Grid } from '../core';
+import type { ClosedUnits } from './scoring';
 
 export const GAME_SCHEMA_VERSION = 1;
 export const SETTINGS_SCHEMA_VERSION = 2;
@@ -25,6 +26,20 @@ export interface Move {
 export type GameStatus = 'idle' | 'in_progress' | 'paused' | 'completed';
 export type GameResult = 'won' | 'lost';
 
+/** Последнее изменение счёта — для всплывашки над клеткой. Не восстанавливается из хранилища. */
+export interface ScoreEvent {
+  /** Монотонный счётчик в пределах партии — ключ для перезапуска анимации. */
+  id: number;
+  row: number;
+  col: number;
+  /** +начислено или −фактический штраф (с учётом пола 0). */
+  delta: number;
+  /** 1 для обычной цифры и для ошибки. */
+  multiplier: number;
+  /** Какие юниты закрыла постановка — для подсветки. */
+  closedUnits: ClosedUnits;
+}
+
 export interface GameState {
   schemaVersion: number;
   puzzleId: string;
@@ -39,7 +54,19 @@ export interface GameState {
   startedAt: string; // ISO
   status: GameStatus;
   result?: GameResult;
+  /** Счёт текущей партии, ≥ 0. */
+  score: number;
+  /** elapsedSeconds последней оплаченной верной цифры. */
+  lastCorrectAtSecond: number;
+  /** 9×9: клетка уже принесла очки (анти-фарм через erase/undo). */
+  scoredCells: boolean[][];
+  lastScoreEvent: ScoreEvent | null;
 }
+
+export type ScoreFields = Pick<
+  GameState,
+  'score' | 'lastCorrectAtSecond' | 'scoredCells' | 'lastScoreEvent'
+>;
 
 export type GameAction =
   | { type: 'PLACE_DIGIT'; row: number; col: number; value: number }
