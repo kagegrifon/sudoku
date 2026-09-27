@@ -58,6 +58,10 @@
   color: var(--ink);
 }
 
+.rankScoreRow {
+  display: contents;
+}
+
 .rankRow {
   display: flex;
   align-items: center;
@@ -157,6 +161,11 @@
   }
   .difficulty {
     font-size: 22px;
+  }
+  .rankScoreRow {
+    display: flex;
+    align-items: center;
+    gap: 14px;
   }
   .livesBlock {
     /* Строка identity/vitals (2-я), поверх обеих колонок → по центру всей ширины,

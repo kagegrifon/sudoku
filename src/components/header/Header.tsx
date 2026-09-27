@@ -55,11 +55,14 @@ export default function Header() {
       {/* Идентичность игрока: сложность, ранг (иконка + имя), очки. На десктопе — над полем. */}
       <div className={styles.identity}>
         <div className={styles.difficulty}>{DIFFICULTY_LABELS[game.state.difficulty]}</div>
-        <div className={styles.rankRow}>
-          <RankBadge rank={rank} size={RANK_BADGE_SIZE} />
-          <span className={styles.rankName}>{rank.name}</span>
+        {/* На мобилке обёртка прозрачна (display: contents), на десктопе — ранг и очки в одну строку. */}
+        <div className={styles.rankScoreRow}>
+          <div className={styles.rankRow}>
+            <RankBadge rank={rank} size={RANK_BADGE_SIZE} />
+            <span className={styles.rankName}>{rank.name}</span>
+          </div>
+          <ScoreDisplay />
         </div>
-        <ScoreDisplay />
       </div>
 
       {/* Жизни: на десктопе — по центру, между левым блоком и временем. */}

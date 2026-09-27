@@ -17,6 +17,21 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Десктоп: очки в одну строку с рангом — «Очки 0». */
+@media (min-width: 900px) {
+  .score {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .label {
+    font-size: 13px;
+  }
+  .value {
+    font-size: 18px;
+  }
+}
+
 .bump {
   animation: bump 450ms ease-out;
 }
