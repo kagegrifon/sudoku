@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useGame } from '../../state/GameContext';
 import { useAppView } from '../../state/AppContext';
 import { useSettings } from '../../state/SettingsContext';
@@ -48,6 +48,42 @@ export default function GameScreen() {
   const gameOver = game.won || game.lost;
   const paused = game.state.status === 'paused';
   const padDisabled = selected === null || gameOver || paused;
+
+  // Ввод с клавиатуры (десктоп): 1–9 вводят цифру в выбранную клетку,
+  // Backspace/Delete стирают. Активно на тех же условиях, что и нампад (padDisabled).
+  //
+  // Колбэки хранятся в ref, чтобы обработчик читал свежие inputDigit/eraseSelected
+  // (пересоздаются каждый рендер), а сама подписка на keydown не переустанавливалась
+  // на каждый рендер — только при включении/выключении ввода (padDisabled).
+  const keyHandlersRef = useRef({ inputDigit, eraseSelected });
+  useEffect(() => {
+    keyHandlersRef.current = { inputDigit, eraseSelected };
+  });
+
+  useEffect(() => {
+    if (padDisabled) return;
+
+    const eraseKeys = new Set(['Backspace', 'Delete']);
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Не перехватываем системные шорткаты (Ctrl+Z и т.п.).
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+      const isDigit = event.key >= '1' && event.key <= '9';
+      if (isDigit) {
+        event.preventDefault();
+        keyHandlersRef.current.inputDigit(Number(event.key));
+        return;
+      }
+      if (eraseKeys.has(event.key)) {
+        event.preventDefault();
+        keyHandlersRef.current.eraseSelected();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [padDisabled]);
   const winResult = game.won ? 'won' : 'lost';
   const boardAreaClass = paused ? styles.boardAreaBlurred : styles.boardArea;
 

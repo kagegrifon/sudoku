@@ -165,4 +165,54 @@ describe('GameScreen', () => {
     renderScreen();
     expect(screen.queryByTestId('digit-5-remaining')).toBeNull();
   });
+
+  describe('ввод с клавиатуры', () => {
+    it('цифра 1–9 заполняет выбранную клетку', () => {
+      renderScreen();
+      fireEvent.click(screen.getByTestId('cell-0-0'));
+      fireEvent.keyDown(window, { key: '5' });
+      expect(screen.getByTestId('cell-0-0').textContent).toBe('5');
+    });
+
+    it('Backspace стирает выбранную клетку', () => {
+      renderScreen();
+      fireEvent.click(screen.getByTestId('cell-0-0'));
+      fireEvent.keyDown(window, { key: '5' });
+      expect(screen.getByTestId('cell-0-0').textContent).toBe('5');
+      fireEvent.keyDown(window, { key: 'Backspace' });
+      expect(screen.getByTestId('cell-0-0').textContent).toBe('');
+    });
+
+    it('Delete стирает выбранную клетку', () => {
+      renderScreen();
+      fireEvent.click(screen.getByTestId('cell-0-0'));
+      fireEvent.keyDown(window, { key: '5' });
+      fireEvent.keyDown(window, { key: 'Delete' });
+      expect(screen.getByTestId('cell-0-0').textContent).toBe('');
+    });
+
+    it('без выбранной клетки нажатие цифры ничего не делает', () => {
+      renderScreen();
+      // Клетку не выбираем — ошибок/изменений быть не должно, жизни целы.
+      fireEvent.keyDown(window, { key: '5' });
+      expect(screen.getByTestId('lives').textContent).not.toContain('♡');
+      expect(screen.getByTestId('cell-0-0').textContent).toBe('');
+    });
+
+    it('цифра с зажатым Ctrl игнорируется (не перехватываем шорткаты)', () => {
+      renderScreen();
+      fireEvent.click(screen.getByTestId('cell-0-0'));
+      fireEvent.keyDown(window, { key: '5', ctrlKey: true });
+      expect(screen.getByTestId('cell-0-0').textContent).toBe('');
+    });
+
+    it('на паузе ввод с клавиатуры не проходит', () => {
+      renderScreen();
+      fireEvent.click(screen.getByTestId('cell-0-0'));
+      fireEvent.click(screen.getByTestId('pause'));
+      fireEvent.keyDown(window, { key: '5' });
+      // Оверлей паузы блюрит поле, но значение клетки не должно измениться.
+      expect(screen.getByTestId('cell-0-0').textContent).toBe('');
+    });
+  });
 });

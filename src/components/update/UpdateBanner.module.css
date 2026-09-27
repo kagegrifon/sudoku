@@ -25,7 +25,7 @@
 
 .apply {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-size: 13px;
   font-weight: 600;
   padding: 8px 16px;
