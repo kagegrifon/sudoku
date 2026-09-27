@@ -6,3 +6,6 @@ dist-ssr/
 .env
 coverage/
 dev-dist/
+
+# Макеты брейншторминга (visual companion)
+.superpowers/

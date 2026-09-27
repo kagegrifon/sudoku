@@ -23,6 +23,12 @@ import {
 } from './remainingDigits';
 import { useSettings } from './SettingsContext';
 import { useRecords } from './RecordsContext';
+import {
+  NO_COMPLETION,
+  summarizeCompletion,
+  type CompletionSnapshot,
+  type CompletionSummary,
+} from './completionSummary';
 
 const SAVE_DEBOUNCE_MS = 400;
 const TIMER_SAVE_INTERVAL_MS = 5000;
@@ -44,6 +50,8 @@ export interface GameApi {
   won: boolean;
   lost: boolean;
   isNewRecord: boolean;
+  /** Итоги завершённой партии для экрана победы; NO_COMPLETION, пока партия идёт. */
+  completion: CompletionSummary;
   canUndo: boolean;
   notesMode: boolean;
   remainingByDigit: Record<number, RemainingDigit>;
@@ -109,52 +117,59 @@ function useGamePersistence(state: GameState): void {
 }
 
 /**
- * Пишет CompletedGame один раз при переходе партии в 'completed' и определяет,
- * побит ли рекорд. `prevBest` читается ДО записи/refresh — иначе свежий результат
- * сам бы стал «предыдущим» рекордом. Возвращает флаг isNewRecord.
+ * Пишет CompletedGame один раз при переходе партии в 'completed' и считает итоги для экрана
+ * победы. Снимок журнала (рекорды, баланс) читается ДО записи/refresh — иначе свежий результат
+ * сам бы стал «предыдущим».
  */
-function useRecordCompletion(state: GameState): boolean {
-  const { records, refresh } = useRecords();
-  const [isNewRecord, setIsNewRecord] = useState(false);
+function useRecordCompletion(state: GameState): CompletionSummary {
+  const journal = useRecords();
+  const { refresh } = journal;
+  const [completion, setCompletion] = useState<CompletionSummary>(NO_COMPLETION);
   const prevStatus = useRef(state.status);
 
-  // Держим свежие records в ref, чтобы эффект завершения не зависел от них
+  // Держим свежие агрегаты журнала в ref, чтобы эффект завершения не зависел от них
   // (иначе он бы перезапускался на каждый refresh).
-  const recordsRef = useRef(records);
+  const journalRef = useRef<CompletionSnapshot>(journal);
   useEffect(() => {
-    recordsRef.current = records;
-  }, [records]);
+    journalRef.current = journal;
+  }, [journal]);
 
   useEffect(() => {
-    // setState здесь — намеренная реакция на переход партии в/из 'completed'
-    // (сброс и вычисление флага рекорда). Правило этого не распознаёт.
+    // setState здесь — намеренная реакция на переход партии в/из 'completed'.
+    // Правило этого не распознаёт.
     /* eslint-disable react-hooks/set-state-in-effect */
     const justCompleted = prevStatus.current !== 'completed' && state.status === 'completed';
     prevStatus.current = state.status;
-    if (state.status !== 'completed') setIsNewRecord(false);
+    if (state.status !== 'completed') setCompletion(NO_COMPLETION);
     const result = state.result;
     if (!justCompleted || result === undefined) return;
 
-    if (result === 'won') {
-      const prevBest = recordsRef.current[state.difficulty];
-      setIsNewRecord(prevBest === null || state.elapsedSeconds < prevBest);
-    } else {
-      setIsNewRecord(false);
-    }
+    setCompletion(
+      summarizeCompletion({
+        result,
+        difficulty: state.difficulty,
+        elapsedSeconds: state.elapsedSeconds,
+        score: state.score,
+        snapshot: journalRef.current,
+      }),
+    );
 
+    // Очки проигранной партии сгорают — в баланс идут только победы.
+    const recordedScore = result === 'won' ? state.score : 0;
     void (async () => {
       await recordCompletedGame({
         difficulty: state.difficulty,
         durationSeconds: state.elapsedSeconds,
         completedAt: new Date().toISOString(),
         outcome: result,
+        score: recordedScore,
       });
       await refresh();
     })();
     /* eslint-enable react-hooks/set-state-in-effect */
-  }, [state.status, state.result, state.difficulty, state.elapsedSeconds, refresh]);
+  }, [state.status, state.result, state.difficulty, state.elapsedSeconds, state.score, refresh]);
 
-  return isNewRecord;
+  return completion;
 }
 
 function useGameTimer({
@@ -197,7 +212,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   useGamePersistence(state);
   useGameTimer({ status: state.status, dispatch });
-  const isNewRecord = useRecordCompletion(state);
+  const completion = useRecordCompletion(state);
 
   const inputDigit = ({ row, col, value }: DigitTarget) => {
     if (notesMode) dispatch({ type: 'TOGGLE_NOTE', row, col, value });
@@ -213,6 +228,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         durationSeconds: state.elapsedSeconds,
         completedAt: new Date().toISOString(),
         outcome: 'abandoned',
+        score: 0,
       });
     }
     setLastDifficulty(difficulty);
@@ -225,7 +241,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     mistakes,
     won: state.status === 'completed' && state.result === 'won',
     lost: state.status === 'completed' && state.result === 'lost',
-    isNewRecord,
+    isNewRecord: completion.isNewRecord,
+    completion,
     canUndo: state.history.length > 0 && state.status === 'in_progress',
     notesMode,
     remainingByDigit,

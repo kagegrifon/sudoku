@@ -35,6 +35,11 @@
   --heart-on: #e0433a;
   --heart-off: #ccd2dd;
 
+  /* Очки: начисление, комбо, штраф */
+  --score-gain: var(--accent);
+  --score-combo: #e8a23a;
+  --score-loss: var(--heart-on);
+
   /* Риски сложностей */
   --diff-easy: #37b26b;
   --diff-medium: #e8a23a;
@@ -68,6 +73,10 @@
   --heart-on: #ff6a60;
   --heart-off: #3d465c;
 
+  --score-gain: #6d9cf8;
+  --score-combo: #f2b555;
+  --score-loss: #ff6a60;
+
   --shadow-card: 0 2px 8px -4px rgba(0, 0, 0, 0.5);
   --shadow-btn: 0 8px 18px -6px rgba(77, 134, 247, 0.5);
 }
@@ -95,6 +104,10 @@
 
     --heart-on: #ff6a60;
     --heart-off: #3d465c;
+
+    --score-gain: #6d9cf8;
+    --score-combo: #f2b555;
+    --score-loss: #ff6a60;
 
     --shadow-card: 0 2px 8px -4px rgba(0, 0, 0, 0.5);
     --shadow-btn: 0 8px 18px -6px rgba(77, 134, 247, 0.5);

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useGame } from '../../state/GameContext';
 import { useAppView } from '../../state/AppContext';
 import { useSettings } from '../../state/SettingsContext';
+import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 import Board from '../board/Board';
 import type { CellPosition } from '../board/cellHighlight';
 import NumberPad from '../numberpad/NumberPad';
@@ -16,6 +17,9 @@ export default function GameScreen() {
   const { navigate } = useAppView();
   const { settings } = useSettings();
   const [selected, setSelected] = useState<CellPosition | null>(null);
+  const reducedMotion = usePrefersReducedMotion();
+  // При reduced-motion всплывашки не показываем — остаётся только смена числа в шапке.
+  const scoreEvent = reducedMotion ? null : game.state.lastScoreEvent;
 
   const selectCell = ({ row, col }: CellPosition) => setSelected({ row, col });
 
@@ -47,6 +51,16 @@ export default function GameScreen() {
   const winResult = game.won ? 'won' : 'lost';
   const boardAreaClass = paused ? styles.boardAreaBlurred : styles.boardArea;
 
+  const scoreSummary = {
+    score: game.state.score,
+    prevTotalScore: game.completion.prevTotalScore,
+    nextTotalScore: game.completion.nextTotalScore,
+    isNewScoreRecord: game.completion.isNewScoreRecord,
+  };
+  // Итоги считаются в эффекте после перехода в completed, поэтому первый кадр WinScreen видит
+  // NO_COMPLETION. Ключ пересоздаёт экран, когда итоги приходят, — анимация стартует с верного баланса.
+  const winScreenKey = `${scoreSummary.prevTotalScore}:${scoreSummary.nextTotalScore}`;
+
   return (
     <div className={styles.screen}>
       <Header />
@@ -63,6 +77,7 @@ export default function GameScreen() {
           onSelectCell={selectCell}
           highlightSameDigits={settings.highlightSameDigits}
           highlightPeers={settings.highlightPeers}
+          scoreEvent={scoreEvent}
         />
       </div>
 
@@ -101,11 +116,13 @@ export default function GameScreen() {
 
       {gameOver && (
         <WinScreen
+          key={winScreenKey}
           result={winResult}
           elapsedSeconds={game.state.elapsedSeconds}
           difficulty={game.state.difficulty}
           livesLeft={game.state.lives}
           isNewRecord={game.isNewRecord}
+          scoreSummary={scoreSummary}
           onNewGame={restartGame}
           onHome={leaveToHomeFromResult}
         />

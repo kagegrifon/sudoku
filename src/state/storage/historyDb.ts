@@ -9,6 +9,8 @@ export interface CompletedGame {
   durationSeconds: number;
   completedAt: string; // ISO
   outcome: GameOutcome;
+  /** Очки партии; для lost/abandoned — 0. Старые записи без поля считаются 0. */
+  score?: number;
 }
 
 const DB_NAME = 'sudoku-history';

@@ -63,3 +63,37 @@ describe('Board — скрытие пометок полностью расст�
     expect(screen.getByTestId('cell-0-0').textContent).toBe('');
   });
 });
+
+function baseProps(): Parameters<typeof Board>[0] {
+  return {
+    grid: emptyGrid(),
+    conflicts: falseMatrix(),
+    selected: null,
+    cellIsGiven: () => false,
+    onSelectCell: vi.fn(),
+  };
+}
+
+describe('Board — всплывашка очков', () => {
+  it('рисует всплывашку по scoreEvent и не рисует без него', () => {
+    const { rerender } = render(<Board {...baseProps()} scoreEvent={null} />);
+    expect(screen.queryByTestId('score-popup')).toBeNull();
+    rerender(
+      <Board
+        {...baseProps()}
+        scoreEvent={{ id: 1, row: 0, col: 0, delta: 50, multiplier: 1, closedUnits: { row: false, col: false, box: false } }}
+      />,
+    );
+    expect(screen.getByTestId('score-popup')).toBeInTheDocument();
+  });
+
+  it('подсвечивает закрытые юниты', () => {
+    render(
+      <Board
+        {...baseProps()}
+        scoreEvent={{ id: 1, row: 0, col: 0, delta: 750, multiplier: 10, closedUnits: { row: true, col: false, box: true } }}
+      />,
+    );
+    expect(screen.getAllByTestId(/^closed-unit-/)).toHaveLength(2);
+  });
+});

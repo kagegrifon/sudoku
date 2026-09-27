@@ -32,6 +32,15 @@
   margin: 0;
 }
 
+.progressCard {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-card);
+}
+
 .periods {
   display: flex;
   gap: 8px;
@@ -143,6 +152,12 @@
   font-size: 15px;
   font-weight: 700;
   color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.diffBestScore {
+  font-size: 12px;
+  color: var(--diff-medium);
   font-variant-numeric: tabular-nums;
 }
 

@@ -9,6 +9,7 @@ import {
   type Difficulty,
   type Grid,
 } from '../core';
+import { closedUnitsAt, mistakePenalty, scoreCorrectEntry, NO_CLOSED_UNITS } from './scoring';
 import {
   GAME_SCHEMA_VERSION,
   INITIAL_LIVES,
@@ -16,6 +17,7 @@ import {
   type GameAction,
   type CellNotesSnapshot,
   type Move,
+  type ScoreFields,
 } from './gameTypes';
 
 export function createEmptyNotes(): number[][][] {
@@ -30,6 +32,20 @@ function createPuzzleId(): string {
 
 function createEmptyGrid(): Grid {
   return Array.from({ length: GRID_SIZE }, () => Array<number>(GRID_SIZE).fill(EMPTY_CELL));
+}
+
+function createEmptyScoredCells(): boolean[][] {
+  return Array.from({ length: GRID_SIZE }, () => Array<boolean>(GRID_SIZE).fill(false));
+}
+
+/** Поля очков новой партии: счёт 0, отсчёт времени от 0, ни одна клетка не оплачена. */
+export function createInitialScoreFields(): ScoreFields {
+  return {
+    score: 0,
+    lastCorrectAtSecond: 0,
+    scoredCells: createEmptyScoredCells(),
+    lastScoreEvent: null,
+  };
 }
 
 /**
@@ -51,6 +67,7 @@ export function createIdleGameState(difficulty: Difficulty): GameState {
     elapsedSeconds: 0,
     startedAt: new Date().toISOString(),
     status: 'idle',
+    ...createInitialScoreFields(),
   };
 }
 
@@ -69,6 +86,7 @@ export function createInitialGameState(difficulty: Difficulty): GameState {
     elapsedSeconds: 0,
     startedAt: new Date().toISOString(),
     status: 'in_progress',
+    ...createInitialScoreFields(),
   };
 }
 
@@ -131,6 +149,76 @@ function autoclearNotes(
 
 type Handler<A extends GameAction> = (state: GameState, action: A) => GameState;
 
+function currentScoreFields(state: GameState): ScoreFields {
+  return {
+    score: state.score,
+    lastCorrectAtSecond: state.lastCorrectAtSecond,
+    scoredCells: state.scoredCells,
+    lastScoreEvent: state.lastScoreEvent,
+  };
+}
+
+function nextScoreEventId(state: GameState): number {
+  return (state.lastScoreEvent?.id ?? 0) + 1;
+}
+
+interface PlacementScoringArgs {
+  state: GameState;
+  row: number;
+  col: number;
+}
+
+/** Штраф за ошибку. Нулевой штраф (счёт уже 0) событием не считается — всплывашки нет. */
+function scoreAfterMistake({ state, row, col }: PlacementScoringArgs): ScoreFields {
+  const penalty = mistakePenalty({ difficulty: state.difficulty, score: state.score });
+  if (penalty.delta === 0) return currentScoreFields(state);
+  return {
+    ...currentScoreFields(state),
+    score: penalty.score,
+    lastScoreEvent: {
+      id: nextScoreEventId(state),
+      row,
+      col,
+      delta: penalty.delta,
+      multiplier: 1,
+      closedUnits: NO_CLOSED_UNITS,
+    },
+  };
+}
+
+interface CorrectPlacementArgs extends PlacementScoringArgs {
+  /** Сетка уже с поставленной цифрой — по ней проверяются закрытые юниты. */
+  currentGrid: Grid;
+}
+
+/** Начисление за верную цифру. Клетка платит только при первой верной постановке. */
+function scoreAfterCorrect({ state, row, col, currentGrid }: CorrectPlacementArgs): ScoreFields {
+  if (state.scoredCells[row][col]) return currentScoreFields(state);
+
+  const closedUnits = closedUnitsAt({ grid: currentGrid, solution: state.solution, row, col });
+  const entry = scoreCorrectEntry({
+    difficulty: state.difficulty,
+    secondsSinceLastCorrect: state.elapsedSeconds - state.lastCorrectAtSecond,
+    closedUnits,
+  });
+  const scoredCells = state.scoredCells.map((rowFlags) => [...rowFlags]);
+  scoredCells[row][col] = true;
+
+  return {
+    score: state.score + entry.gained,
+    lastCorrectAtSecond: state.elapsedSeconds,
+    scoredCells,
+    lastScoreEvent: {
+      id: nextScoreEventId(state),
+      row,
+      col,
+      delta: entry.gained,
+      multiplier: entry.multiplier,
+      closedUnits,
+    },
+  };
+}
+
 const placeDigit: Handler<Extract<GameAction, { type: 'PLACE_DIGIT' }>> = (state, action) => {
   if (state.status !== 'in_progress') return state;
   const { row, col, value } = action;
@@ -151,12 +239,16 @@ const placeDigit: Handler<Extract<GameAction, { type: 'PLACE_DIGIT' }>> = (state
     clearedNotes: cleared,
   };
   const lives = wasMistake ? state.lives - 1 : state.lives;
+  const scoreFields = wasMistake
+    ? scoreAfterMistake({ state, row, col })
+    : scoreAfterCorrect({ state, row, col, currentGrid });
   const base: GameState = {
     ...state,
     currentGrid,
     notes,
     history: [...state.history, move],
     lives,
+    ...scoreFields,
   };
 
   if (lives <= 0) return { ...base, status: 'completed', result: 'lost' };
@@ -210,7 +302,11 @@ const newGame: Handler<Extract<GameAction, { type: 'NEW_GAME' }>> = (_state, act
 const resetToIdle: Handler<Extract<GameAction, { type: 'RESET_TO_IDLE' }>> = (state) =>
   createIdleGameState(state.difficulty);
 
-const restore: Handler<Extract<GameAction, { type: 'RESTORE' }>> = (_state, action) => action.state;
+// Всплывашки не переигрываем: событие относится к моменту ввода, а не к восстановлению.
+const restore: Handler<Extract<GameAction, { type: 'RESTORE' }>> = (_state, action) => ({
+  ...action.state,
+  lastScoreEvent: null,
+});
 
 const erase: Handler<Extract<GameAction, { type: 'ERASE' }>> = (state, action) => {
   if (state.status !== 'in_progress') return state;
