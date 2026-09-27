@@ -7,6 +7,7 @@
   width: 100%;
   max-width: min(92vw, 70vh, 540px);
   margin: 0 auto;
+  /* Десктоп: поле крупнее, но не во всю высоту — потолок 640px, ограничен высотой окна. */
   border: 3px solid var(--board-border, #344055);
   background: var(--board-border, #344055);
   gap: 1px;
@@ -87,4 +88,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/*
+ * Десктоп: ширина поля берётся из --board-size, заданной на игровом экране
+ * (GameScreen.module.css) — единый источник для grid-колонки и самого поля.
+ * Фолбэк на случай, если поле рендерится вне игрового экрана.
+ */
+@media (min-width: 900px) {
+  .board {
+    max-width: var(--board-size, min(56vh, 620px));
+  }
 }

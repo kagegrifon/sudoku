@@ -43,8 +43,8 @@
   justify-content: center;
 }
 
-/* Планшет-portrait: крупнее, шире контейнер, центрирование. */
-@media (min-width: 700px) and (orientation: portrait) {
+/* Планшет-portrait (до десктопа): крупнее, шире контейнер, центрирование. */
+@media (min-width: 700px) and (max-width: 899px) and (orientation: portrait) {
   .screen {
     max-width: 620px;
     gap: 24px;
@@ -53,10 +53,10 @@
 }
 
 /*
- * Landscape: поле слева (квадрат), справа колонка управления
+ * Landscape (не десктоп): поле слева (квадрат), справа колонка управления
  * (ActionsBar над NumberPad). Хедер сверху на всю ширину.
  */
-@media (orientation: landscape) {
+@media (orientation: landscape) and (max-width: 899px) {
   .screen {
     flex-flow: row wrap;
     align-items: center;
@@ -75,5 +75,52 @@
   .controls {
     width: auto;
     flex: 0 1 300px;
+  }
+}
+
+/*
+ * Десктоп (шире планшета): две колонки — поле слева, управление справа.
+ * Хедер (display: contents) раскладывается по этим же колонкам:
+ *   game-identity над полем (слева), game-vitals над нампадом (по центру колонки).
+ * Кнопки навигации ‹ / ⚙ уходят в верхние углы. Имена областей общие с Header.module.css.
+ */
+@media (min-width: 900px) {
+  .screen {
+    /* Ширина колонки управления и горизонтальные отступы вокруг поля. */
+    --controls-width: 300px;
+    --screen-gutter: 40px; /* gap между колонками + запас на padding */
+    /* Ширина поля — единый источник для колонки и для .board (см. Board.module.css).
+       Ограничена высотой, доступной шириной (чтобы не вылезать на узком десктопе) и потолком. */
+    --board-size: min(56vh, calc(100vw - var(--controls-width) - var(--screen-gutter) - 64px), 620px);
+
+    display: grid;
+    /* Две колонки — поле и управление, вплотную через один gap (как до переноса жизней).
+       Жизни и пауза центрируются ПОВЕРХ этих колонок (span 1 / -1), не раздвигая их. */
+    grid-template-columns: var(--board-size) var(--controls-width);
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas:
+      'game-nav-back  game-nav-settings'
+      'game-identity  game-vitals'
+      'board          controls';
+    align-content: start;
+    justify-content: center;
+    gap: 18px 40px;
+    max-width: none;
+    min-height: 100svh;
+    padding: 32px;
+  }
+  .boardArea,
+  .boardAreaBlurred {
+    grid-area: board;
+    width: var(--board-size);
+    align-self: start;
+    justify-self: start;
+    justify-content: center;
+  }
+  .controls {
+    grid-area: controls;
+    width: var(--controls-width);
+    align-self: start;
+    gap: 20px;
   }
 }

@@ -106,10 +106,16 @@ describe('Header', () => {
     renderHeader();
     expect(screen.getByTestId('timer').textContent).toBe('00:00');
   });
-  it('показывает индикатор жизней и уровень', () => {
+  it('показывает индикатор жизней, сложность и ранг', () => {
     renderHeader();
     expect(screen.getByTestId('lives')).toBeTruthy();
-    expect(screen.getByTestId('header').textContent).toContain('Уровень');
+    const headerText = screen.getByTestId('header').textContent ?? '';
+    expect(headerText).toContain('Лёгкий'); // сложность easy
+    expect(headerText).toContain('Новичок'); // ранг при нулевом балансе
+  });
+  it('показывает иконку ранга', () => {
+    renderHeader();
+    expect(screen.getByTestId('rank-badge')).toBeTruthy();
   });
   it('кнопка «‹ назад» уводит на home', () => {
     renderHeader();

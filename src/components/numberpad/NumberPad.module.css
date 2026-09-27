@@ -70,3 +70,20 @@
   visibility: hidden;
   pointer-events: none;
 }
+
+/* Десктоп: нампад — сетка 3×3 на всю ширину колонки управления, кнопки крупнее. */
+@media (min-width: 900px) {
+  .pad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    max-width: none;
+  }
+  .key {
+    min-height: 72px;
+    border-radius: 16px;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--shadow-card);
+  }
+}
