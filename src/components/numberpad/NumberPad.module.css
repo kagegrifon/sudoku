@@ -23,8 +23,13 @@
   touch-action: manipulation;
 }
 
-/* Landscape / планшет: нампад — сетка 3×3 рядом с полем. */
-@media (orientation: landscape) {
+/*
+ * Телефон в landscape: нампад — сетка 3×3 рядом с полем.
+ * Планшет 700–899px с достаточной высотой остаётся с нампадом в одну строку.
+ * Условия синхронны с landscape-раскладкой GameScreen.module.css.
+ */
+@media (orientation: landscape) and (max-width: 699px),
+  (orientation: landscape) and (max-height: 599px) {
   .pad {
     display: grid;
     grid-template-columns: repeat(3, 1fr);

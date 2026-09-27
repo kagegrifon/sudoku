@@ -43,23 +43,42 @@
   justify-content: center;
 }
 
-/* Планшет-portrait (до десктопа): крупнее, шире контейнер, центрирование. */
-@media (min-width: 700px) and (max-width: 899px) and (orientation: portrait) {
+/*
+ * Планшет (700–899px, в любой ориентации при достаточной высоте): одна колонка,
+ * нампад в одну строку. Крупнее и шире, чем на телефоне.
+ */
+@media (min-width: 700px) and (max-width: 899px) and (min-height: 600px) {
   .screen {
+    /* Поле ограничено высотой: хедер, панель действий и нампад должны влезть без прокрутки. */
+    --board-size: min(100svh - 400px, 540px);
+
     max-width: 620px;
     gap: 24px;
     padding: 32px;
   }
+  .boardArea,
+  .boardAreaBlurred {
+    width: var(--board-size);
+  }
 }
 
 /*
- * Landscape (не десктоп): поле слева (квадрат), справа колонка управления
- * (ActionsBar над NumberPad). Хедер сверху на всю ширину.
+ * Телефон в landscape (узкий или низкий экран, не десктоп): поле слева (квадрат),
+ * справа колонка управления (ActionsBar над NumberPad). Хедер сверху на всю ширину.
+ * Условия синхронны с landscape-раскладкой нампада (NumberPad.module.css).
  */
-@media (orientation: landscape) and (max-width: 899px) {
+@media (orientation: landscape) and (max-width: 699px),
+  (orientation: landscape) and (max-width: 899px) and (max-height: 599px) {
   .screen {
+    --controls-width: 300px;
+    /* Явная ширина поля: без неё контейнер с width: auto сжимает поле до минимума клеток.
+       Ограничена высотой (минус хедер и отступы), шириной (минус колонка управления) и потолком. */
+    --board-size: min(100svh - 180px, 100vw - var(--controls-width) - 56px, 540px);
+
     flex-flow: row wrap;
-    align-items: center;
+    align-items: flex-start;
+    /* Строки прижаты к верху — иначе min-height растягивает их и между хедером и полем пустота. */
+    align-content: flex-start;
     justify-content: center;
     gap: 24px;
     max-width: 1000px;
@@ -69,12 +88,12 @@
   }
   .boardArea,
   .boardAreaBlurred {
-    width: auto;
-    flex: 0 1 auto;
+    width: var(--board-size);
+    flex: none;
   }
   .controls {
-    width: auto;
-    flex: 0 1 300px;
+    width: var(--controls-width);
+    flex: none;
   }
 }
 
