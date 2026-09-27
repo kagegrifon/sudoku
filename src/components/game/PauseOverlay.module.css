@@ -16,7 +16,7 @@
   height: 66px;
   border-radius: 50%;
   background: var(--card);
-  box-shadow: 0 6px 18px -6px rgba(20, 30, 60, 0.25);
+  box-shadow: var(--shadow-card);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -53,7 +53,7 @@
 
 .primary {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   padding: 16px;
 }
 

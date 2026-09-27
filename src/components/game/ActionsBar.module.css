@@ -57,6 +57,7 @@
 
 .badgeOn {
   background: var(--accent);
+  color: var(--on-accent);
 }
 
 .label {

@@ -20,7 +20,7 @@
   width: 80px;
   height: 80px;
   border-radius: 20px;
-  box-shadow: 0 10px 24px -8px rgba(36, 84, 214, 0.5);
+  box-shadow: var(--shadow-btn);
 }
 
 .title {
@@ -116,7 +116,7 @@
   margin-top: 14px;
   border: 0;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-size: 17px;
   font-weight: 600;
   padding: 17px;

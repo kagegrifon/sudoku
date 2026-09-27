@@ -68,7 +68,7 @@
 .segmentItemActive {
   color: var(--ink);
   background: var(--card);
-  box-shadow: 0 1px 3px rgba(20, 30, 60, 0.14);
+  box-shadow: var(--shadow-card);
 }
 
 .card {
@@ -111,7 +111,7 @@
 
 .updateButton {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-size: 13px;
   font-weight: 600;
   padding: 8px 16px;
