@@ -1,15 +1,33 @@
+/*
+ * Мобилка/планшет: хедер — двухстрочный grid.
+ *   строка 1: ‹ назад · (пауза по центру) · ⚙ настройки
+ *   строка 2: identity (слева) · жизни · время (справа)
+ * Десктоп (min-width: 900px): header становится display:contents,
+ * его части раскладываются в grid игрового экрана (общие имена областей).
+ */
 .header {
   width: 100%;
   max-width: min(92vw, 540px);
   margin: 0 auto;
   box-sizing: border-box;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas:
+    'back      pause     settings'
+    'identity  lives     vitals';
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 10px;
+  padding: 6px 0 0;
 }
 
-.topRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 0 12px;
+.navBack {
+  grid-area: back;
+  justify-self: start;
+}
+.navSettings {
+  grid-area: settings;
+  justify-self: end;
 }
 
 .iconButton {
@@ -25,10 +43,47 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-.statsRow {
+/* Идентичность: сложность, ранг, очки */
+.identity {
+  grid-area: identity;
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  color: var(--ink-muted);
+}
+
+.difficulty {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.rankScoreRow {
+  display: contents;
+}
+
+.rankRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.rankName {
+  font-size: 13px;
+  color: var(--ink-subtle);
+}
+
+/* Блок жизней — по центру между identity и временем */
+.livesBlock {
+  grid-area: lives;
+  align-items: center;
+}
+
+/* Время (правый блок состояния) */
+.vitals {
+  grid-area: vitals;
+  display: flex;
   align-items: flex-end;
+  justify-content: flex-end;
   color: var(--ink-muted);
   font-size: 16px;
 }
@@ -64,13 +119,9 @@
   color: var(--heart-off);
 }
 
-.timeGroup {
-  display: flex;
-  gap: 9px;
-  align-items: flex-end;
-}
-
 .pauseButton {
+  grid-area: pause;
+  justify-self: center;
   width: 30px;
   height: 30px;
   border-radius: 50%;
@@ -78,7 +129,6 @@
   background: var(--divider);
   color: var(--ink-muted);
   display: flex;
-  align-self: center;
   align-items: center;
   justify-content: center;
   font-size: 12px;
@@ -89,4 +139,76 @@
 .pauseButton:disabled {
   opacity: 0.4;
   cursor: default;
+}
+
+/*
+ * Десктоп: хедер растворяется (display: contents), части встают в grid игрового экрана.
+ *   game-identity — над полем (слева), game-lives — по центру,
+ *   game-vitals (время) — над нампадом (справа),
+ *   пауза — по центру верхней строки между ‹ и ⚙.
+ */
+@media (min-width: 900px) {
+  .header {
+    display: contents;
+  }
+  .identity {
+    grid-area: game-identity;
+    align-self: start;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding-bottom: 4px;
+  }
+  .difficulty {
+    font-size: 22px;
+  }
+  .rankScoreRow {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .livesBlock {
+    /* Строка identity/vitals (2-я), поверх обеих колонок → по центру всей ширины,
+       не влияя на расстояние поле↔нампад. */
+    grid-row: 2;
+    grid-column: 1 / -1;
+    justify-self: center;
+    align-self: start;
+    align-items: center;
+    padding-bottom: 4px;
+  }
+  .lives {
+    font-size: 20px;
+  }
+  .vitals {
+    grid-area: game-vitals;
+    align-self: start;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 4px;
+  }
+  .vitals .statValue {
+    font-size: 26px;
+  }
+  .navBack {
+    grid-area: game-nav-back;
+    justify-self: start;
+    align-self: start;
+  }
+  .navSettings {
+    grid-area: game-nav-settings;
+    justify-self: end;
+    align-self: start;
+  }
+  .pauseButton {
+    /* Строка nav (1-я), поверх обеих колонок → по центру между ‹ и ⚙. */
+    grid-row: 1;
+    grid-column: 1 / -1;
+    justify-self: center;
+    align-self: start;
+    width: 36px;
+    height: 36px;
+    font-size: 13px;
+  }
 }

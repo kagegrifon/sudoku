@@ -31,8 +31,9 @@
 }
 
 .iconWon {
-  background: linear-gradient(160deg, #3f7ff2, #2454d6);
-  box-shadow: 0 14px 30px -8px rgba(36, 84, 214, 0.6);
+  background: linear-gradient(160deg, var(--win-from), var(--win-to));
+  box-shadow: var(--shadow-win);
+  color: var(--on-accent);
 }
 
 .iconLost {
@@ -277,7 +278,7 @@
 
 .newGame {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-size: 17px;
   font-weight: 600;
   padding: 17px;

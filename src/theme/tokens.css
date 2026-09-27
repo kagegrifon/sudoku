@@ -17,6 +17,8 @@
   --card-border: transparent;
   --accent: #2f6fed;
   --accent-soft: #eef3fd;
+  /* Текст/иконки поверх акцентного фона (кнопки, бейджи) */
+  --on-accent: #ffffff;
   --ink: #1f2633;
   --ink-muted: #5b6472;
   --ink-subtle: #8a93a4;
@@ -48,68 +50,96 @@
   /* Тени */
   --shadow-card: 0 2px 8px -4px rgba(20, 30, 60, 0.12);
   --shadow-btn: 0 8px 18px -6px rgba(47, 111, 237, 0.5);
+
+  /* Затемнение под модальными листами */
+  --backdrop: rgba(20, 30, 60, 0.4);
+
+  /* Иконка победы: градиент и свечение */
+  --win-from: #3f7ff2;
+  --win-to: #2454d6;
+  --shadow-win: 0 14px 30px -8px rgba(36, 84, 214, 0.6);
 }
 
-/* --- Явная тёмная тема --- */
+/*
+ * --- Явная тёмная тема (тёплая) ---
+ * Тёплый уголь + янтарный акцент. Слои разведены по светлоте
+ * (фон темнее карточек) и снабжены видимыми границами, чтобы поле,
+ * кнопки и нампад читались как отдельные объекты. Подсветка выбора —
+ * контрастная янтарная тройка peer → same → selected.
+ */
 [data-theme='dark'] {
-  --bg: #0e1320;
-  --card: #171d2b;
-  --card-border: #232b3c;
-  --accent: #4d86f7;
-  --accent-soft: #1d2740;
-  --ink: #eef1f8;
-  --ink-muted: #9aa3b7;
-  --ink-subtle: #8b93a5;
-  --ink-faint: #6b7688;
-  --divider: #232b3c;
+  --bg: #13100c;
+  --card: #2a231b;
+  --card-border: #3d3225;
+  --accent: #f0a94e;
+  --accent-soft: #3b2c19;
+  --on-accent: #1f1408;
+  --ink: #f6efe4;
+  --ink-muted: #b6a892;
+  --ink-subtle: #8f8069;
+  --ink-faint: #6d5f4d;
+  --divider: #3a2f23;
 
-  --board-outer: #46516a;
-  --board-grid-thin: #262f42;
-  --cell-surface: #141a27;
-  --cell-sel: #2c4a78;
-  --cell-same: #223a5f;
-  --cell-peer: #1a2233;
+  --board-outer: #6b5537;
+  --board-grid-thin: #3a2f23;
+  --cell-surface: #241d15;
+  --cell-sel: #c08324;
+  --cell-same: #8a6413;
+  --cell-peer: #45341a;
 
-  --heart-on: #ff6a60;
-  --heart-off: #3d465c;
+  --heart-on: #ef6a48;
+  --heart-off: #4d3f2d;
 
-  --score-gain: #6d9cf8;
+  --score-gain: var(--accent);
   --score-combo: #f2b555;
-  --score-loss: #ff6a60;
+  --score-loss: #ef6a48;
 
-  --shadow-card: 0 2px 8px -4px rgba(0, 0, 0, 0.5);
-  --shadow-btn: 0 8px 18px -6px rgba(77, 134, 247, 0.5);
+  --shadow-card: 0 4px 16px -6px rgba(0, 0, 0, 0.7);
+  --shadow-btn: 0 8px 18px -6px rgba(240, 169, 78, 0.4);
+
+  --backdrop: rgba(0, 0, 0, 0.55);
+
+  --win-from: #f5bd6a;
+  --win-to: #d98a2b;
+  --shadow-win: 0 14px 30px -8px rgba(240, 169, 78, 0.45);
 }
 
-/* --- Системная тёмная (только когда data-theme не задан) --- */
+/* --- Системная тёмная (только когда data-theme не задан) — та же тёплая палитра --- */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --bg: #0e1320;
-    --card: #171d2b;
-    --card-border: #232b3c;
-    --accent: #4d86f7;
-    --accent-soft: #1d2740;
-    --ink: #eef1f8;
-    --ink-muted: #9aa3b7;
-    --ink-subtle: #8b93a5;
-    --ink-faint: #6b7688;
-    --divider: #232b3c;
+    --bg: #13100c;
+    --card: #2a231b;
+    --card-border: #3d3225;
+    --accent: #f0a94e;
+    --accent-soft: #3b2c19;
+    --on-accent: #1f1408;
+    --ink: #f6efe4;
+    --ink-muted: #b6a892;
+    --ink-subtle: #8f8069;
+    --ink-faint: #6d5f4d;
+    --divider: #3a2f23;
 
-    --board-outer: #46516a;
-    --board-grid-thin: #262f42;
-    --cell-surface: #141a27;
-    --cell-sel: #2c4a78;
-    --cell-same: #223a5f;
-    --cell-peer: #1a2233;
+    --board-outer: #6b5537;
+    --board-grid-thin: #3a2f23;
+    --cell-surface: #241d15;
+    --cell-sel: #c08324;
+    --cell-same: #8a6413;
+    --cell-peer: #45341a;
 
-    --heart-on: #ff6a60;
-    --heart-off: #3d465c;
+    --heart-on: #ef6a48;
+    --heart-off: #4d3f2d;
 
-    --score-gain: #6d9cf8;
+    --score-gain: var(--accent);
     --score-combo: #f2b555;
-    --score-loss: #ff6a60;
+    --score-loss: #ef6a48;
 
-    --shadow-card: 0 2px 8px -4px rgba(0, 0, 0, 0.5);
-    --shadow-btn: 0 8px 18px -6px rgba(77, 134, 247, 0.5);
+    --shadow-card: 0 4px 16px -6px rgba(0, 0, 0, 0.7);
+    --shadow-btn: 0 8px 18px -6px rgba(240, 169, 78, 0.4);
+
+    --backdrop: rgba(0, 0, 0, 0.55);
+
+    --win-from: #f5bd6a;
+    --win-to: #d98a2b;
+    --shadow-win: 0 14px 30px -8px rgba(240, 169, 78, 0.45);
   }
 }
