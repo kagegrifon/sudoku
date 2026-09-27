@@ -191,3 +191,51 @@
   color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
+
+/* Десктоп: шире колонка, крупнее отступы и типографика. */
+@media (min-width: 900px) {
+  .screen {
+    max-width: 720px;
+    gap: 18px;
+    padding: 56px 32px 40px;
+  }
+  .title {
+    font-size: 26px;
+  }
+  .progressCard {
+    padding: 20px 24px;
+  }
+  .periodButton {
+    min-height: 44px;
+    font-size: 15px;
+  }
+  .summaryRow {
+    gap: 16px;
+  }
+  .summaryCard {
+    padding: 20px 24px;
+  }
+  .summaryLabel {
+    font-size: 13px;
+  }
+  .summaryValue {
+    font-size: 28px;
+  }
+  .summaryValueBig {
+    font-size: 36px;
+  }
+  .diffCard {
+    padding: 8px 24px;
+  }
+  .diffRow {
+    padding: 14px 0;
+  }
+  .diffName,
+  .diffBest {
+    font-size: 16px;
+  }
+  .metricRow {
+    padding: 12px 18px;
+    font-size: 15px;
+  }
+}

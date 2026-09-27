@@ -146,3 +146,53 @@
   font-family: inherit;
   cursor: pointer;
 }
+
+/*
+ * Десктоп: шире колонка, крупнее лого и типографика. Вместо распорки,
+ * прижимающей кнопки к низу окна, вся колонка центрируется по вертикали.
+ */
+@media (min-width: 900px) {
+  .screen {
+    max-width: 540px;
+    justify-content: center;
+    padding: 48px 32px;
+  }
+  .brand {
+    margin-top: 0;
+    gap: 20px;
+  }
+  .logo {
+    width: 104px;
+    height: 104px;
+    border-radius: 26px;
+  }
+  .title {
+    font-size: 38px;
+  }
+  .profileCard {
+    margin-top: 32px;
+    padding: 20px;
+  }
+  .spacer {
+    flex: none;
+    height: 32px;
+  }
+  .continueCard {
+    padding: 22px 24px;
+  }
+  .continueSummary {
+    font-size: 19px;
+  }
+  .newGameButton {
+    font-size: 19px;
+    padding: 20px;
+  }
+  .secondaryRow {
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .secondaryButton {
+    font-size: 16px;
+    padding: 18px 0;
+  }
+}
