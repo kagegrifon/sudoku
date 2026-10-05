@@ -18,14 +18,16 @@
   --samevalue-bg: var(--cell-same);
   --selected-bg: var(--cell-sel);
   --conflict-text: var(--heart-on);
-  --conflict-bg: var(--cell-peer);
+  --conflict-bg: color-mix(in srgb, var(--heart-on) 22%, var(--cell-surface));
 
   --pad-bg: var(--card);
   --pad-active-bg: var(--accent-soft);
   --pad-border: var(--card-border);
   --pad-text: var(--ink);
 
-  --mistake-bg: var(--cell-peer);
+  --mistake-bg: color-mix(in srgb, var(--heart-on) 22%, var(--cell-surface));
+  /* Выбранная ошибочная/конфликтная клетка — красный насыщеннее, чтобы было видно выделение. */
+  --error-selected-bg: color-mix(in srgb, var(--heart-on) 45%, var(--cell-surface));
   --mistake-text: var(--heart-on);
   --note-text: var(--ink-faint);
   --heart-full: var(--heart-on);

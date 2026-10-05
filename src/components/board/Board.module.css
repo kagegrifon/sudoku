@@ -73,6 +73,13 @@
   background: var(--mistake-bg, #ffd9d9);
 }
 
+/* Выбранная клетка с ошибкой/конфликтом: красный фон перекрыл бы выделение,
+   поэтому даём более насыщенный красный — видно и ошибку, и выбор. */
+.selected.mistake,
+.selected.conflict {
+  background: var(--error-selected-bg, #f5a3a3);
+}
+
 /* Мини-сетка заметок-кандидатов внутри пустой клетки. */
 .notes {
   display: grid;
