@@ -68,6 +68,8 @@
   gap: 6px;
 }
 .rankName {
+  /* На мобилке/планшете места мало — только значок ранга (название есть в его aria-label). */
+  display: none;
   font-size: 13px;
   color: var(--ink-subtle);
 }
@@ -166,6 +168,9 @@
     display: flex;
     align-items: center;
     gap: 14px;
+  }
+  .rankName {
+    display: inline;
   }
   .livesBlock {
     /* Строка identity/vitals (2-я), поверх обеих колонок → по центру всей ширины,

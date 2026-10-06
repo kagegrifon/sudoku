@@ -10,7 +10,6 @@
   /* Десктоп: поле крупнее, но не во всю высоту — потолок 640px, ограничен высотой окна. */
   border: 3px solid var(--board-border, #344055);
   background: var(--board-border, #344055);
-  gap: 1px;
   box-sizing: border-box;
   touch-action: manipulation;
 }
@@ -23,6 +22,11 @@
   min-height: 0;
   padding: 0;
   border: none;
+  /* Тонкие линии сетки — рамками клеток, а не `gap`: ширина клетки дробная,
+     и при `gap` браузер округлял промежутки то в 1, то в 2 пикселя (линии «жирнели»).
+     Толщину рамки браузер округляет одинаково, а лишний пиксель уходит в ширину клетки. */
+  border-right: 1px solid var(--board-border, #344055);
+  border-bottom: 1px solid var(--board-border, #344055);
   font: inherit;
   font-size: clamp(16px, 8vmin, 30px);
   line-height: 1;
@@ -33,14 +37,23 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Последний столбец и строка без рамки — там внешняя граница поля. */
+.cell:nth-child(9n) {
+  border-right: none;
+}
+.cell:nth-child(n + 73) {
+  border-bottom: none;
+}
+
 /* Толстые границы блоков 3×3: правый край столбцов 3 и 6, нижний край строк 3 и 6.
-   Используем nth-child по позиции в 81-клеточной сетке (row-major). */
+   Используем nth-child по позиции в 81-клеточной сетке (row-major).
+   3px — как раньше суммарно давали gap 1px + рамка 2px. */
 .cell:nth-child(3n):not(:nth-child(9n)) {
-  border-right: 2px solid var(--board-border, #344055);
+  border-right-width: 3px;
 }
 .cell:nth-child(n + 19):nth-child(-n + 27),
 .cell:nth-child(n + 46):nth-child(-n + 54) {
-  border-bottom: 2px solid var(--board-border, #344055);
+  border-bottom-width: 3px;
 }
 
 .given {
@@ -71,6 +84,13 @@
 .mistake {
   color: var(--mistake-text, #d93636);
   background: var(--mistake-bg, #ffd9d9);
+}
+
+/* Выбранная клетка с ошибкой/конфликтом: красный фон перекрыл бы выделение,
+   поэтому даём более насыщенный красный — видно и ошибку, и выбор. */
+.selected.mistake,
+.selected.conflict {
+  background: var(--error-selected-bg, #f5a3a3);
 }
 
 /* Мини-сетка заметок-кандидатов внутри пустой клетки. */
